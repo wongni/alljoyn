@@ -291,7 +291,31 @@
       'sources': [
         'src/test_allchat.cc',
         'alljoyn/alljoyn_core/router/bundled/BundledRouter.cc'
+      ]
+    },
+    {
+      'target_name': 'sample-about-client',
+      'type': 'executable',
+      'dependencies': [
+        'alljoyn',
+        'ajrouter'
       ],
+      'sources': [
+        'alljoyn/alljoyn_core/samples/about/AboutClient.cc',
+        'alljoyn/alljoyn_core/router/bundled/BundledRouter.cc'
+      ]
+    },
+    {
+      'target_name': 'sample-about-service',
+      'type': 'executable',
+      'dependencies': [
+        'alljoyn',
+        'ajrouter'
+      ],
+      'sources': [
+        'alljoyn/alljoyn_core/samples/about/AboutService.cc',
+        'alljoyn/alljoyn_core/router/bundled/BundledRouter.cc'
+      ]
     }
   ]
 }
