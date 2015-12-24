@@ -376,6 +376,18 @@
         'alljoyn/alljoyn_core/samples/basic/signalConsumer_client.cc',
         'alljoyn/alljoyn_core/router/bundled/BundledRouter.cc'
       ]
+    },
+    {
+      'target_name': 'sample-chat',
+      'type': 'executable',
+      'dependencies': [
+        'alljoyn',
+        'ajrouter'
+      ],
+      'sources': [
+        'alljoyn/alljoyn_core/samples/chat/linux/chat.cc',
+        'alljoyn/alljoyn_core/router/bundled/BundledRouter.cc'
+      ]
     }
   ]
 }
