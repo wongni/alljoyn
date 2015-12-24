@@ -28,6 +28,7 @@ class BusConnection : public node::ObjectWrap {
     static NAN_METHOD(RequestName);
     static NAN_METHOD(AdvertiseName);
     static NAN_METHOD(RegisterSignalHandler);
+    static NAN_METHOD(GetConnectSpec);
 
   public:
     ajn::BusAttachment* bus;

@@ -59,6 +59,7 @@ void BusConnection::Init () {
   NODE_SET_PROTOTYPE_METHOD(tpl, "requestName", BusConnection::RequestName);
   NODE_SET_PROTOTYPE_METHOD(tpl, "advertiseName", BusConnection::AdvertiseName);
   NODE_SET_PROTOTYPE_METHOD(tpl, "registerSignalHandler", BusConnection::RegisterSignalHandler);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "getConnectSpec", BusConnection::GetConnectSpec);
 }
 
 NAN_METHOD(BusConnection::New) {
@@ -259,3 +260,9 @@ NAN_METHOD(BusConnection::RegisterSignalHandler) {
   NanReturnValue(NanNew<v8::Integer>(static_cast<int>(status)));
 }
 
+NAN_METHOD(BusConnection::GetConnectSpec){
+  NanScope();
+  BusConnection* connection = node::ObjectWrap::Unwrap<BusConnection>(args.This());
+  qcc::String connectSpec = connection->bus->GetConnectSpec();
+  NanReturnValue(NanNew<v8::String>(connectSpec.c_str()));
+}
