@@ -340,6 +340,18 @@
         'alljoyn/alljoyn_core/samples/basic/basic_service.cc',
         'alljoyn/alljoyn_core/router/bundled/BundledRouter.cc'
       ]
+    },
+    {
+      'target_name': 'sample-basic-name-change-client',
+      'type': 'executable',
+      'dependencies': [
+        'alljoyn',
+        'ajrouter'
+      ],
+      'sources': [
+        'alljoyn/alljoyn_core/samples/basic/nameChange_client.cc',
+        'alljoyn/alljoyn_core/router/bundled/BundledRouter.cc'
+      ]
     }
   ]
 }
