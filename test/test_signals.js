@@ -5,8 +5,8 @@ var ALL_GOOD = 0;
 
 describe('Signals on a Connected Session', function() {
   var serviceInterfaceName = 'org.alljoyn.bus.samples.chat';
-  var namePrefix = 'org.alljoyn.bus.samples.chat.';
   var serviceObjectPath = '/chatService';
+  var namePrefix = serviceInterfaceName + '.';
   var applicationName = 'chat';
   var signalName = 'Chat';
   var signalSignature = 's';
@@ -17,22 +17,16 @@ describe('Signals on a Connected Session', function() {
   var busAttachment = null;
   var busInterface = null;
   var busObject = null;
-
-  var busListener = alljoyn.BusListener(
-    function(name){
-      sessionId = busAttachment.joinSession(name, port, sessionId);
-      setTimeout(function(){
-        busObject.signal(null, sessionId, busInterface, "Chat", "Hello, I am a node.js client!");
-      }, 1000);
-    },
-    function(name){
-    },
-    function(name){
-    }
-  );
+  var chatRoomName = 'Detroit';
+  var advertisedChatRoomName = namePrefix + chatRoomName;
+  var busListener = null;
   
   it('should be true that true is true', function() {
     assert.equal(true, true);
+  });
+  
+  it('should load the alljoyn bus', function() {
+    assert.equal(typeof alljoyn.BusObject, 'function');
   });
   
   //TODO: setup should be pulled out and put somewhere else.
@@ -50,12 +44,20 @@ describe('Signals on a Connected Session', function() {
   it('should add a signal to the interface', function() {
     assert.equal(busInterface.addSignal(signalName, signalSignature, signalArgumentNames, signalAnnotation), ALL_GOOD);
   });
-
-  it('should activate the interface', function() {
-    assert.equal(busInterface.activate(),undefined);
-  });
-
+  //
+  // it('should activate the interface', function() {
+  //   assert.equal(busInterface.activate(),undefined);
+  // });
+  //
   it('should register the bus listener', function() {
+    busListener = alljoyn.BusListener(
+      function(name){
+        sessionID = busAttachment.joinSession(name, port, sessionID);
+        setTimeout(function(){
+          busObject.signal(null, sessionID, busInterface, "Chat", "Hello, I am a node.js client!");
+        }, 1000);
+      }, function(name){},function(name){}
+    );
     assert.equal(busAttachment.registerBusListener(busListener), undefined);
   });
 
@@ -78,7 +80,11 @@ describe('Signals on a Connected Session', function() {
   });
 
   it('should discover a well-known adverstised name on the bus', function() {
-    assert.equal(busAttachment.findAdvertisedName(serviceInterfaceName), ALL_GOOD);
+    assert.equal(busAttachment.findAdvertisedName(advertisedChatRoomName), ALL_GOOD);
   });
 
+  it('should send a chat signal', function() {
+    var chatMessage = '"Put your hands up 4 Detroit!" -Fedde le Grand, Matthew Dear & Disco D.';
+    assert.equal(busObject.signal(null, sessionID, busInterface, signalName, chatMessage), ALL_GOOD);
+  });
 });
