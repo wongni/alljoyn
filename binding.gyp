@@ -352,6 +352,30 @@
         'alljoyn/alljoyn_core/samples/basic/nameChange_client.cc',
         'alljoyn/alljoyn_core/router/bundled/BundledRouter.cc'
       ]
+    },
+    {
+      'target_name': 'sample-basic-signal-service',
+      'type': 'executable',
+      'dependencies': [
+        'alljoyn',
+        'ajrouter'
+      ],
+      'sources': [
+        'alljoyn/alljoyn_core/samples/basic/signal_service.cc',
+        'alljoyn/alljoyn_core/router/bundled/BundledRouter.cc'
+      ]
+    },
+    {
+      'target_name': 'sample-basic-signal-consumer-service',
+      'type': 'executable',
+      'dependencies': [
+        'alljoyn',
+        'ajrouter'
+      ],
+      'sources': [
+        'alljoyn/alljoyn_core/samples/basic/signalConsumer_client.cc',
+        'alljoyn/alljoyn_core/router/bundled/BundledRouter.cc'
+      ]
     }
   ]
 }
