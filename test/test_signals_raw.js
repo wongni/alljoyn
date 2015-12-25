@@ -1,78 +1,60 @@
+var assert = require('assert');
 var alljoyn = require('../');
 
-console.log("Test loading alljoyn bus...", alljoyn);
-var sessionId = 0;
-var portNumber = 27;
-var advertisedName = "org.alljoyn.bus.samples.chat.detroit";
-var bus = alljoyn.BusAttachment("chat");
-var inter = alljoyn.InterfaceDescription();
-listener = alljoyn.BusListener(
-  function(name){
-    console.log("FoundAdvertisedName", name);
-    sessionId = bus.joinSession(name, portNumber, 0);
-    console.log("JoinSession "+sessionId);
-    setTimeout(function(){
-      chatObject.signal(null, sessionId, inter, "Chat", "Hello, I am the client!");
-    }, 1000);
-  },
-  function(name){
-    console.log("LostAdvertisedName", name);
-  },
-  function(name){
-    console.log("NameOwnerChanged", name);
-  }
-);
+describe('Signals on a Connected AllJoyn Session', function() {
+  this.timeout(15000);
+  var ALL_GOOD = 0;
+  var sessionId = 0;
+  var portNumber = 27;
+  var advertisedName = "org.alljoyn.bus.samples.chat.detroit";
+  var bus = null;
+  var inter = null;
+  var listener = null;
+  var chatObject = null;
+    
+  before(function(done){
+    bus = alljoyn.BusAttachment("chat");
+    inter = alljoyn.InterfaceDescription();
+    listener = alljoyn.BusListener(
+      function(name){
+        sessionId = bus.joinSession(name, portNumber, 0);
+        setTimeout(function(){
+          chatObject.signal(null, sessionId, inter, "Chat", "Hello, I am the client!");
+          done();
+        }, 500);
+      },
+      function(name){
+        console.log("LostAdvertisedName", name);
+      },
+      function(name){
+        console.log("NameOwnerChanged", name);
+      }
+    );
+    bus.createInterface("org.alljoyn.bus.samples.chat", inter);
+    inter.addSignal("Chat", "s",  "msg");
+    bus.registerBusListener(listener);
+    bus.start();
+    chatObject = alljoyn.BusObject("/chatService");
+    chatObject.addInterface(inter);
+    bus.registerSignalHandler(chatObject, function(msg, info){
+      console.log(msg["0"]);
+    }, inter, "Chat");
+    bus.registerBusObject(chatObject);
+    bus.connect();
+    bus.findAdvertisedName('org.alljoyn.bus.samples.chat');
+  });
 
-console.log("CreateInterface "+bus.createInterface("org.alljoyn.bus.samples.chat", inter));
-console.log("AddSignal "+inter.addSignal("Chat", "s",  "msg"));
-bus.registerBusListener(listener);
-console.log("Start "+bus.start());
-var chatObject = alljoyn.BusObject("/chatService");
-console.log("chat.AddInterface "+chatObject.addInterface(inter));
-console.log("RegisterSignalHandler "+bus.registerSignalHandler(chatObject, function(msg, info){
-  // console.log("Signal received: ", msg, info);
-  console.log(msg["0"]);
-}, inter, "Chat"));
-console.log("RegisterBusObject "+bus.registerBusObject(chatObject));
-console.log("Connect"+bus.connect());
-console.log("FindAdvertisedName "+bus.findAdvertisedName('org.alljoyn.bus.samples.chat'));
-
-// Added Chat to example
-var stdin = process.stdin;
-
-// without this, we would only get streams once enter is pressed
-stdin.setRawMode( true );
-
-// resume stdin in the parent process (node app won't quit all by itself
-// unless an error or process.exit() happens)
-stdin.resume();
-
-// i don't want binary, do you?
-stdin.setEncoding( 'utf8' );
-
-// on any data into stdin
-stdin.on( 'data', function( key ){
-  // ctrl-c ( end of text )
-  if ( key === '\u0003' ) {
-    process.exit();
-  }
-  // write the key to stdout all normal like
-  process.stdout.write( key + '\n' );
-  // chatObject.signal(null, sessionId, inter, 'hello' );
-  chatObject.signal(null, sessionId, inter, "Chat", key);
-});
-
-chatMessage = 's';
-
-describe('Signal', function(done) {
   it('should send a message', function(done) {
     setTimeout(function(){
+      chatObject.signal(null, sessionId, inter, "Chat", "Hello, I am a test!");
       done();
-    }, 1750);
+    }, 750);
   });
-  it('should send a message from listener', function(done){
+
+  it('should return a null connect spec', function(done){
     setTimeout(function(){
+      assert.equal(bus.getConnectSpec(),'null:')
       done();
-    }, 1750);
+    }, 750);
   });
 });
