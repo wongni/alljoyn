@@ -52,6 +52,7 @@ void BusConnection::Init () {
   NODE_SET_PROTOTYPE_METHOD(tpl, "createInterface", BusConnection::CreateInterface);
   NODE_SET_PROTOTYPE_METHOD(tpl, "getInterface", BusConnection::GetInterface);
   NODE_SET_PROTOTYPE_METHOD(tpl, "registerBusListener", BusConnection::RegisterBusListener);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "unregisterBusListener", BusConnection::UnregisterBusListener);
   NODE_SET_PROTOTYPE_METHOD(tpl, "registerBusObject", BusConnection::RegisterBusObject);
   NODE_SET_PROTOTYPE_METHOD(tpl, "findAdvertisedName", BusConnection::FindAdvertisedName);
   NODE_SET_PROTOTYPE_METHOD(tpl, "joinSession", BusConnection::JoinSession);
@@ -162,6 +163,19 @@ NAN_METHOD(BusConnection::RegisterBusListener) {
 
   NanReturnUndefined();
 }
+
+NAN_METHOD(BusConnection::UnregisterBusListener) {
+  NanScope();
+  if (args.Length() == 0)
+    return NanThrowError("UnregisterBusListener requires a BusListener argument");
+
+  BusConnection* connection = node::ObjectWrap::Unwrap<BusConnection>(args.This());
+  BusListenerWrapper* wrapper = node::ObjectWrap::Unwrap<BusListenerWrapper>(args[0].As<v8::Object>());
+  connection->bus->UnregisterBusListener(*(wrapper->listener));
+
+  NanReturnUndefined();
+}
+
 
 NAN_METHOD(BusConnection::RegisterBusObject) {
   NanScope();

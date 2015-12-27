@@ -21,6 +21,7 @@ class BusConnection : public node::ObjectWrap {
     static NAN_METHOD(CreateInterface);
     static NAN_METHOD(GetInterface);
     static NAN_METHOD(RegisterBusListener);
+    static NAN_METHOD(UnregisterBusListener);
     static NAN_METHOD(RegisterBusObject);
     static NAN_METHOD(FindAdvertisedName);
     static NAN_METHOD(JoinSession);

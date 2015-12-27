@@ -1,11 +1,12 @@
+// for this suite to work, the AllJoyn sample chat app must be running
+// how to run it? after running npm install:
+// > <project_root>/build/Release/sample-chat -s detroit
+
 var assert = require('assert');
 var alljoyn = require('../');
 
-describe('Signals on a Connected Session', function() {
-  // this.timeout(15000);
-  
+describe('Signals on a Connected AllJoyn Session', function() {
   var ALL_GOOD = 0;
-
   var serviceInterfaceName = 'org.alljoyn.bus.samples.chat';
   var serviceObjectPath = '/chatService';
   var namePrefix = serviceInterfaceName + '.';
@@ -19,86 +20,82 @@ describe('Signals on a Connected Session', function() {
   var busAttachment = null;
   var busInterface = null;
   var busObject = null;
-  var chatRoomName = 'Detroit';
+  var chatRoomName = 'detroit';
   var advertisedChatRoomName = namePrefix + chatRoomName;
   var busListener = null;
-  
-  it('should be true that true is true', function(done) {
+  var foundAdvertisedNameAlreadyCalled = false;
+    
+  // i wish the before all function weren't so sloppy.
+  // is this a function of AllJoyn being sloppy?
+  before(function(done){
+    // sanity check test suite
     assert.equal(true, true);
-  });
-  
-  it('should load the alljoyn bus', function(done) {
+    // sanity check AllJoyn bus
     assert.equal(typeof alljoyn.BusObject, 'function');
-    setTimeout(done, 500);
-  });
-  
-  //TODO: setup should be pulled out and put somewhere else.
-  it('should attach to the AllJoyn bus for chat sample app', function(done) {
+    // attach to the AllJoyn bus for chat sample app in
+    // <project_root>/alljoyn/alljoyn_core/samples/chat/linux/chat.cc
+    // by first running: <project_root>/build/Release/sample-chat -s detroit
     busAttachment = alljoyn.BusAttachment(applicationName);
     assert.equal(typeof busAttachment, 'object');
-    setTimeout(done, 500);
-  });
-
-  it('should create an interface to the chat sample app', function(done) {
+    // try to ping the bus attachment
+    // assert.equal(busAttachment.ping(serviceInterfaceName,1000), 'foo');
+    // create an interface to the chat sample app
     busInterface = alljoyn.InterfaceDescription();
     assert.equal(typeof busInterface, 'object');
+    // create the interface on the bus attachment
     assert.equal(busAttachment.createInterface(serviceInterfaceName, busInterface),ALL_GOOD);
-    setTimeout(done, 500);
-  });
-
-  it('should add a signal to the interface', function(done) {
+    // add a signal
     assert.equal(busInterface.addSignal(signalName, signalSignature, signalArgumentNames, signalAnnotation), ALL_GOOD);
-    setTimeout(done, 500);
-  });
-
-  it('should activate the interface', function(done) {
-    assert.equal(busInterface.activate(),undefined);
-    setTimeout(done, 500);
-  });
-
-  it('should register the bus listener', function(done) {
+    // register a buslistener
     busListener = alljoyn.BusListener(
       function(name){
-        sessionID = busAttachment.joinSession(name, port, sessionID);
-        setTimeout(function(){
-          busObject.signal(null, sessionID, busInterface, "Chat", "Hello, I am a node.js client!");
-        }, 1000);
-      }, function(name){},function(name){}
+        console.log('FoundAdvertisedName', name);
+        if (foundAdvertisedNameAlreadyCalled) {
+        } else {
+          sessionID = busAttachment.joinSession(name, port, sessionID);
+          busObject.signal(null, sessionID, busInterface, signalName, 'Hello, I am the client!');
+          foundAdvertisedNameAlreadyCalled = true;
+          done();
+        }
+      },
+      function(name){
+        console.log('LostAdvertisedName', name);
+      },
+      function(name){
+        console.log('NameOwnerChanged', name);
+      }
     );
-    assert.equal(busAttachment.registerBusListener(busListener), undefined);
-    setTimeout(done, 500);
-  });
-
-  it('should start the bus', function(done) {
+assert.equal(busAttachment.registerBusListener(busListener), undefined);
+    // start the bus attachment
     assert.equal(busAttachment.start(), ALL_GOOD);
-    setTimeout(done, 500);
-  });
-
-  it('should create the bus object that will send and receive signals', function(done) {
+    // create the bus object that will send and receive signals
     busObject = alljoyn.BusObject(serviceObjectPath);
     assert.equal(typeof busObject, 'object');
-    setTimeout(done, 500);
-  });
-
-  it('should register the bus object', function(done) {
+    // add interface
+    assert.equal(busObject.addInterface(busInterface), ALL_GOOD);
+    // register signal handler
+    assert.equal(busAttachment.registerSignalHandler(busObject, function(msg, info){
+      console.log(msg[0]);
+    }, busInterface, signalName), ALL_GOOD);
+    // register bus object
     assert.equal(busAttachment.registerBusObject(busObject), ALL_GOOD);
-    setTimeout(done, 500);
-  });
-
-  it('should connect to the bus with a null connect spec', function(done) {
+    // connect to bus
     assert.equal(busAttachment.connect(), ALL_GOOD);
-    assert.equal(busAttachment.getConnectSpec(),'null:')
-    setTimeout(done, 500);
-  });
-
-  it('should discover a well-known adverstised name on the bus', function(done) {
+    // find advertised name
     assert.equal(busAttachment.findAdvertisedName(advertisedChatRoomName), ALL_GOOD);
-    setTimeout(done, 500);
   });
 
-  it('should send a chat signal', function(done) {
+  it('should send a message', function() {
     var chatMessage = '"Put your hands up 4 Detroit!" -Fedde le Grand, Matthew Dear & Disco D.';
-    assert.equal(busObject.signal(null, sessionID, busInterface, signalName, chatMessage), ALL_GOOD);
-    setTimeout(done, 500);
+    busObject.signal(null, sessionID, busInterface, signalName, chatMessage);
   });
+
+  it('should return a null connect spec', function(){
+    assert.equal(busAttachment.getConnectSpec(),'null:');
+  });
+  
+  it('should unregister the bus listener ', function(){
+    assert.equal(busAttachment.unregisterBusListener(busListener),undefined)
+  });
+    
 });
