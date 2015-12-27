@@ -20,6 +20,7 @@ describe('Signals on a Connected AllJoyn Session', function() {
   var busAttachment = null;
   var busInterface = null;
   var busObject = null;
+  var busName = null;
   var chatRoomName = 'detroit';
   var advertisedChatRoomName = namePrefix + chatRoomName;
   var busListener = null;
@@ -37,8 +38,6 @@ describe('Signals on a Connected AllJoyn Session', function() {
     // by first running: <project_root>/build/Release/sample-chat -s detroit
     busAttachment = alljoyn.BusAttachment(applicationName);
     assert.equal(typeof busAttachment, 'object');
-    // try to ping the bus attachment
-    // assert.equal(busAttachment.ping(serviceInterfaceName,1000), 'foo');
     // create an interface to the chat sample app
     busInterface = alljoyn.InterfaceDescription();
     assert.equal(typeof busInterface, 'object');
@@ -65,7 +64,7 @@ describe('Signals on a Connected AllJoyn Session', function() {
         console.log('NameOwnerChanged', name);
       }
     );
-assert.equal(busAttachment.registerBusListener(busListener), undefined);
+    assert.equal(busAttachment.registerBusListener(busListener), undefined);
     // start the bus attachment
     assert.equal(busAttachment.start(), ALL_GOOD);
     // create the bus object that will send and receive signals
@@ -81,8 +80,14 @@ assert.equal(busAttachment.registerBusListener(busListener), undefined);
     assert.equal(busAttachment.registerBusObject(busObject), ALL_GOOD);
     // connect to bus
     assert.equal(busAttachment.connect(), ALL_GOOD);
+    busName = busAttachment.getUniqueName();
+
+    // try to ping the bus attachment
+    assert.equal(busAttachment.ping(busName,5000), ALL_GOOD);
+
     // find advertised name
     assert.equal(busAttachment.findAdvertisedName(advertisedChatRoomName), ALL_GOOD);
+
   });
 
   it('should send a message', function() {
