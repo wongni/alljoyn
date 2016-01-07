@@ -228,7 +228,7 @@ int main(int argc, char** argv)
 
     QStatus status;
 
-    BusAttachment bus("AboutServiceTest", true);
+    BusAttachment bus("AboutPlusServiceTest", true);
 
     g_bus = &bus;
 
