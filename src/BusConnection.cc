@@ -52,6 +52,7 @@ void BusConnection::Init () {
   NODE_SET_PROTOTYPE_METHOD(tpl, "createInterface", BusConnection::CreateInterface);
   NODE_SET_PROTOTYPE_METHOD(tpl, "getInterface", BusConnection::GetInterface);
   NODE_SET_PROTOTYPE_METHOD(tpl, "registerBusListener", BusConnection::RegisterBusListener);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "unregisterBusListener", BusConnection::UnregisterBusListener);
   NODE_SET_PROTOTYPE_METHOD(tpl, "registerBusObject", BusConnection::RegisterBusObject);
   NODE_SET_PROTOTYPE_METHOD(tpl, "findAdvertisedName", BusConnection::FindAdvertisedName);
   NODE_SET_PROTOTYPE_METHOD(tpl, "joinSession", BusConnection::JoinSession);
@@ -59,6 +60,9 @@ void BusConnection::Init () {
   NODE_SET_PROTOTYPE_METHOD(tpl, "requestName", BusConnection::RequestName);
   NODE_SET_PROTOTYPE_METHOD(tpl, "advertiseName", BusConnection::AdvertiseName);
   NODE_SET_PROTOTYPE_METHOD(tpl, "registerSignalHandler", BusConnection::RegisterSignalHandler);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "getConnectSpec", BusConnection::GetConnectSpec);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "ping", BusConnection::Ping);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "getUniqueName", BusConnection::GetUniqueName);
 }
 
 NAN_METHOD(BusConnection::New) {
@@ -162,6 +166,19 @@ NAN_METHOD(BusConnection::RegisterBusListener) {
   NanReturnUndefined();
 }
 
+NAN_METHOD(BusConnection::UnregisterBusListener) {
+  NanScope();
+  if (args.Length() == 0)
+    return NanThrowError("UnregisterBusListener requires a BusListener argument");
+
+  BusConnection* connection = node::ObjectWrap::Unwrap<BusConnection>(args.This());
+  BusListenerWrapper* wrapper = node::ObjectWrap::Unwrap<BusListenerWrapper>(args[0].As<v8::Object>());
+  connection->bus->UnregisterBusListener(*(wrapper->listener));
+
+  NanReturnUndefined();
+}
+
+
 NAN_METHOD(BusConnection::RegisterBusObject) {
   NanScope();
   if (args.Length() == 0)
@@ -259,3 +276,28 @@ NAN_METHOD(BusConnection::RegisterSignalHandler) {
   NanReturnValue(NanNew<v8::Integer>(static_cast<int>(status)));
 }
 
+NAN_METHOD(BusConnection::GetConnectSpec){
+  NanScope();
+  BusConnection* connection = node::ObjectWrap::Unwrap<BusConnection>(args.This());
+  qcc::String connectSpec = connection->bus->GetConnectSpec();
+  NanReturnValue(NanNew<v8::String>(connectSpec.c_str()));
+}
+
+NAN_METHOD(BusConnection::Ping) {
+  NanScope();
+  if (args.Length() < 2 || !args[0]->IsString() || !args[1]->IsNumber())
+    return NanThrowError("Ping requires a well-known name and timeout in milliseconds.");
+
+  char* name = strdup(*NanUtf8String(args[0]));
+
+  BusConnection* connection = node::ObjectWrap::Unwrap<BusConnection>(args.This());
+  QStatus status = connection->bus->Ping(name, args[1]->Int32Value());
+  NanReturnValue(NanNew<v8::Integer>(static_cast<int>(status)));
+}
+
+NAN_METHOD(BusConnection::GetUniqueName){
+  NanScope();
+  BusConnection* connection = node::ObjectWrap::Unwrap<BusConnection>(args.This());
+  qcc::String uniqueName = connection->bus->GetUniqueName();
+  NanReturnValue(NanNew<v8::String>(uniqueName.c_str()));
+}
