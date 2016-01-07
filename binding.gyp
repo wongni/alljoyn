@@ -318,6 +318,30 @@
       ]
     },
     {
+      'target_name': 'sample-about-plus-client',
+      'type': 'executable',
+      'dependencies': [
+        'alljoyn',
+        'ajrouter'
+      ],
+      'sources': [
+        'alljoyn/alljoyn_core/samples/about_plus/AboutPlusClient.cc',
+        'alljoyn/alljoyn_core/router/bundled/BundledRouter.cc'
+      ]
+    },
+    {
+      'target_name': 'sample-about-plus-service',
+      'type': 'executable',
+      'dependencies': [
+        'alljoyn',
+        'ajrouter'
+      ],
+      'sources': [
+        'alljoyn/alljoyn_core/samples/about_plus/AboutPlusService.cc',
+        'alljoyn/alljoyn_core/router/bundled/BundledRouter.cc'
+      ]
+    },
+    {
       'target_name': 'sample-basic-client',
       'type': 'executable',
       'dependencies': [
