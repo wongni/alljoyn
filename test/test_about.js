@@ -14,7 +14,7 @@ var actualVersion = null;
 var actualBusName = null;
 var actualPort = null;
 var actualAboutDataArg = null;
-var actualObjectDescriptionArg = null;
+var actualObjectDescription = null;
 
 describe('An AllJoyn about announcement', function() {
   var ALL_GOOD = 0;
@@ -58,7 +58,7 @@ describe('An AllJoyn about announcement', function() {
 
     // register a buslistener
     aboutListener = alljoyn.AboutListener(
-      function(busName, version, port, objectDescriptionArg, aboutDataArg){
+      function(busName, version, port, objectDescription, aboutDataArg){
         console.log('Announce signal discovered from bus', busName);
         console.log('busName: ' + busName);
         actualBusName = busName;
@@ -66,8 +66,9 @@ describe('An AllJoyn about announcement', function() {
         actualVersion = version;
         console.log('port: ' + port);
         actualPort = port;
-        console.log('objectDescriptionArg: ' + util.inspect(objectDescriptionArg));
-        actualObjectDescriptionArg = objectDescriptionArg;
+        console.log('objectDescription: ' + util.inspect(objectDescription));
+        actualObjectDescription = objectDescription;
+        console.log('actualObjectDescription: ' + util.inspect(actualObjectDescription));
         console.log('aboutDataArg: ' + util.inspect(aboutDataArg));
         actualAboutDataArg = aboutDataArg;
         aboutListenerWasCalled = true;
@@ -94,8 +95,11 @@ describe('An AllJoyn about announcement', function() {
     assert(actualPort > 0);
   });
   it('should have an Object description', function() {
-    assert.equal(typeof(actualObjectDescriptionArg), 'object');
-    assert(Object.keys(actualObjectDescriptionArg).length > 0);
+    assert.equal(typeof(actualObjectDescription), 'object');
+    var objectDescriptionKeys = Object.keys(actualObjectDescription);
+    assert(objectDescriptionKeys.length > 0);
+    assert(objectDescriptionKeys.indexOf('/example/path') > -1);
+    assert.equal(actualObjectDescription['/example/path'], 'com.example.about.feature.interface.sample');
   });
   it('should have About data', function() {
     assert.equal(typeof(actualAboutDataArg), 'object');
