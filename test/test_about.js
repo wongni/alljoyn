@@ -3,8 +3,9 @@
 // > <project_root>/build/Release/sample-about-plus-service
 
 // TODO: start, inspect and stop OS process from within the test
- // http://stackoverflow.com/questions/20643470/execute-a-command-line-binary-with-node-js
+// http://stackoverflow.com/questions/20643470/execute-a-command-line-binary-with-node-js
 
+var util = require('util');
 var assert = require('assert');
 var alljoyn = require('../');
 var aboutListenerWasCalled = false;
@@ -12,8 +13,10 @@ var aboutListenerWasCalled = false;
 var actualVersion = null;
 var actualBusName = null;
 var actualPort = null;
+var actualAboutDataArg = null;
+var actualObjectDescriptionArg = null;
 
-describe('How an AllJoyn client listens for an About announcement', function() {
+describe('An AllJoyn about announcement', function() {
   var ALL_GOOD = 0;
   var serviceInterfaceName = 'com.example.about.feature.interface.sample';
   var serviceObjectPath = '/chatService';
@@ -63,8 +66,10 @@ describe('How an AllJoyn client listens for an About announcement', function() {
         actualVersion = version;
         console.log('port: ' + port);
         actualPort = port;
-        console.log('objectDescriptionArg: ' + objectDescriptionArg);
-        console.log('aboutDataArg: ' + aboutDataArg);
+        console.log('objectDescriptionArg: ' + util.inspect(objectDescriptionArg));
+        actualObjectDescriptionArg = objectDescriptionArg;
+        console.log('aboutDataArg: ' + util.inspect(aboutDataArg));
+        actualAboutDataArg = aboutDataArg;
         aboutListenerWasCalled = true;
         done();
       }
@@ -80,12 +85,21 @@ describe('How an AllJoyn client listens for an About announcement', function() {
     assert.equal(typeof(actualBusName), 'string');
     assert(actualBusName.length > 0);
   });
-  it('should have a version of 1', function() {
-    assert.equal(actualVersion, 1);
+  it('should have a version number', function() {
+    assert.equal(typeof(actualVersion), 'number');
+    assert(actualVersion > 0);
   });
   it('should have a port number', function() {
     assert.equal(typeof(actualPort), 'number');
     assert(actualPort > 0);
+  });
+  it('should have an Object description', function() {
+    assert.equal(typeof(actualObjectDescriptionArg), 'object');
+    assert(Object.keys(actualObjectDescriptionArg).length > 0);
+  });
+  it('should have About data', function() {
+    assert.equal(typeof(actualAboutDataArg), 'object');
+    assert(Object.keys(actualAboutDataArg).length > 0);
   });
   
 });

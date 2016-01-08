@@ -19,6 +19,8 @@ private:
     const char* busName;
     int version;
     int port;
+    ajn::MsgArg* objectDescriptionArg;
+    ajn::MsgArg* aboutDataArg;
   } announced;
 
 public:
