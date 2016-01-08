@@ -99,7 +99,8 @@ describe('An AllJoyn about announcement', function() {
     var objectDescriptionKeys = Object.keys(actualObjectDescription);
     assert(objectDescriptionKeys.length > 0);
     assert(objectDescriptionKeys.indexOf('/example/path') > -1);
-    assert.equal(actualObjectDescription['/example/path'], 'com.example.about.feature.interface.sample');
+    assert.equal(Object.prototype.toString.call( actualObjectDescription['/example/path'] ), '[object Array]');
+    assert.equal(actualObjectDescription['/example/path'][0], 'com.example.about.feature.interface.sample');
   });
   it('should have About data', function() {
     assert.equal(typeof(actualAboutDataArg), 'object');
