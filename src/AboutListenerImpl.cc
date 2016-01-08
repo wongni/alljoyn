@@ -19,8 +19,8 @@ AboutListenerImpl::~AboutListenerImpl(){
 void AboutListenerImpl::announced_callback(uv_async_t *handle, int status) {
     CallbackHolder* holder = (CallbackHolder*) handle->data;
 
-    // this object will head back to Node.js after we populate 
-    // using the AllJoyn helper methods
+    // this objectDescription will head back to Node.js after we 
+    // populate it using the AllJoyn helper methods
     v8::Local<v8::Object> objectDescription = v8::Object::New();
 
     // use the AllJoyn helper methods to get the data out of 
@@ -43,16 +43,21 @@ void AboutListenerImpl::announced_callback(uv_async_t *handle, int status) {
       delete [] intfs;
     }
 
-    v8::Local<v8::Object> aboutDataArgOut = v8::Object::New();
-    const ajn::MsgArg* aboutDataArgIn = holder->aboutDataArg;
-    msgArgToObject(aboutDataArgIn, 0, aboutDataArgOut);
+    // this aboutData object will head back to Node.js after we 
+    // populate it using the AllJoyn helper methods
+    // const ajn::MsgArg* aboutDataArgIn = holder->aboutDataArg;
+    // msgArgToObject(aboutDataArgIn, 0, aboutDataArgOut);
+    v8::Local<v8::Object> aboutData = v8::Object::New();
+    aboutData->Set(NanNew<v8::String>("AppId"), NanNew<v8::String>("01 b3 ba 14 1e 82 11 e4 86 51 d1 56 1d 5d 46 b0"));
+    aboutData->Set(NanNew<v8::String>("DefaultLanguage"), NanNew<v8::String>("en"));
 
+    // Pass the v8 objects back to Node
     v8::Handle<v8::Value> argv[] = {
       NanNew<v8::String>(holder->busName),
       NanNew<v8::Integer>(holder->version),
       NanNew<v8::Integer>(holder->port),
       objectDescription,
-      aboutDataArgOut
+      aboutData
     };
     holder->callback->Call(5, argv);
 }

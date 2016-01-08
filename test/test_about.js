@@ -13,8 +13,8 @@ var aboutListenerWasCalled = false;
 var actualVersion = null;
 var actualBusName = null;
 var actualPort = null;
-var actualAboutDataArg = null;
 var actualObjectDescription = null;
+var actualAboutData = null;
 
 describe('An AllJoyn about announcement', function() {
   var ALL_GOOD = 0;
@@ -58,7 +58,7 @@ describe('An AllJoyn about announcement', function() {
 
     // register a buslistener
     aboutListener = alljoyn.AboutListener(
-      function(busName, version, port, objectDescription, aboutDataArg){
+      function(busName, version, port, objectDescription, aboutData){
         console.log('Announce signal discovered from bus', busName);
         console.log('busName: ' + busName);
         actualBusName = busName;
@@ -69,8 +69,8 @@ describe('An AllJoyn about announcement', function() {
         console.log('objectDescription: ' + util.inspect(objectDescription));
         actualObjectDescription = objectDescription;
         console.log('actualObjectDescription: ' + util.inspect(actualObjectDescription));
-        console.log('aboutDataArg: ' + util.inspect(aboutDataArg));
-        actualAboutDataArg = aboutDataArg;
+        console.log('aboutData: ' + util.inspect(aboutData));
+        actualAboutData = aboutData;
         aboutListenerWasCalled = true;
         done();
       }
@@ -103,8 +103,10 @@ describe('An AllJoyn about announcement', function() {
     assert.equal(actualObjectDescription['/example/path'][0], 'com.example.about.feature.interface.sample');
   });
   it('should have About data', function() {
-    assert.equal(typeof(actualAboutDataArg), 'object');
-    assert(Object.keys(actualAboutDataArg).length > 0);
+    assert.equal(typeof(actualAboutData), 'object');
+    assert.equal(actualAboutData['AppId'], '01 b3 ba 14 1e 82 11 e4 86 51 d1 56 1d 5d 46 b0');
+    assert.equal(actualAboutData['DefaultLanguage'],'en');
+    assert.equal(Object.keys(actualAboutData).length, 5);
   });
   
 });
