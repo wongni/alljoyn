@@ -104,9 +104,17 @@ describe('An AllJoyn about announcement', function() {
   });
   it('should have About data', function() {
     assert.equal(typeof(actualAboutData), 'object');
-    assert.equal(actualAboutData['AppId'], '01 b3 ba 14 1e 82 11 e4 86 51 d1 56 1d 5d 46 b0');
-    assert.equal(actualAboutData['DefaultLanguage'],'en');
-    assert.equal(Object.keys(actualAboutData).length, 5);
   });
-  
+  it('should have a valid DeviceID', function() {
+    assert.equal(actualAboutData['DeviceId'], '93c06771-c725-48c2-b1ff-6a2a59d445b8');
+  });
+  it('should have a valid model number', function() {
+    assert.equal(actualAboutData['ModelNumber'],'123456');
+  });
+  it('should have a valid hex AppId', function() {
+    assert.equal(actualAboutData['AppId'][1].toString(16),'b3');
+  });
+  it('should have the 7 metadata fields published the Announce signal', function() {
+    assert.equal(Object.keys(actualAboutData).length, 7);
+  });
 });

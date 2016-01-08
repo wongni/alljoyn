@@ -2,6 +2,7 @@
 
 #include "util.h"
 #include "AboutListenerImpl.h"
+#include <alljoyn/AboutData.h>
 #include <alljoyn/AboutObjectDescription.h>
 #include <alljoyn/InterfaceDescription.h>
 #include <alljoyn/AllJoynStd.h>
@@ -48,8 +49,46 @@ void AboutListenerImpl::announced_callback(uv_async_t *handle, int status) {
     // const ajn::MsgArg* aboutDataArgIn = holder->aboutDataArg;
     // msgArgToObject(aboutDataArgIn, 0, aboutDataArgOut);
     v8::Local<v8::Object> aboutData = v8::Object::New();
-    aboutData->Set(NanNew<v8::String>("AppId"), NanNew<v8::String>("01 b3 ba 14 1e 82 11 e4 86 51 d1 56 1d 5d 46 b0"));
-    aboutData->Set(NanNew<v8::String>("DefaultLanguage"), NanNew<v8::String>("en"));
+    ajn::AboutData ajnAboutData(*holder->aboutDataArg);
+    size_t count = ajnAboutData.GetFields();
+    const char** fields = new const char*[count];
+    ajnAboutData.GetFields(fields, count);
+
+    for (size_t i = 0; i < count; ++i) {
+      ajn::MsgArg* tmp;
+      ajnAboutData.GetField(fields[i], tmp, NULL);
+      if (tmp->Signature() == "s") {
+        const char* tmp_s;
+        tmp->Get("s", &tmp_s);
+        aboutData->Set(NanNew<v8::String>(fields[i]), NanNew<v8::String>(tmp_s));
+      } else if (tmp->Signature() == "ay") {
+          size_t lay;
+          uint8_t* pay;
+          tmp->Get("ay", &lay, &pay);
+          v8::Local<v8::Array> v8_pay = v8::Array::New(lay);
+          for (size_t j = 0; j < lay; ++j) {
+            v8_pay->Set(j, NanNew<v8::Integer>(pay[j]));
+          }
+          aboutData->Set(NanNew<v8::String>(fields[i]), v8_pay);
+      } else if (tmp->Signature() == "as") {
+        // TODO: need to write a test to hit this block
+        // it is only called after a session is created
+        size_t las;
+        ajn::MsgArg* as_arg;
+        tmp->Get("as", &las, &as_arg);
+        v8::Local<v8::Array> v8_las = v8::Array::New(las);
+        for (size_t j = 0; j < las; ++j) {
+          const char* tmp_s;
+          as_arg[j].Get("s", &tmp_s);
+          v8_las->Set(j, NanNew<v8::String>(tmp_s));
+        }
+        aboutData->Set(NanNew<v8::String>(fields[i]), v8_las);
+      }
+    }
+    delete [] fields;
+    
+    // aboutData->Set(NanNew<v8::String>("AppId"), NanNew<v8::String>("01 b3 ba 14 1e 82 11 e4 86 51 d1 56 1d 5d 46 b0"));
+    // aboutData->Set(NanNew<v8::String>("DefaultLanguage"), NanNew<v8::String>("en"));
 
     // Pass the v8 objects back to Node
     v8::Handle<v8::Value> argv[] = {
@@ -60,9 +99,9 @@ void AboutListenerImpl::announced_callback(uv_async_t *handle, int status) {
       aboutData
     };
     holder->callback->Call(5, argv);
-}
+  }
 
-void AboutListenerImpl::Announced(const char * busName, uint16_t version, ajn::SessionPort port, const ajn::MsgArg & objectDescriptionArg, const ajn::MsgArg & aboutDataArg){
+  void AboutListenerImpl::Announced(const char * busName, uint16_t version, ajn::SessionPort port, const ajn::MsgArg & objectDescriptionArg, const ajn::MsgArg & aboutDataArg){
     announced_async.data = (void*) &announced;
 
     announced.busName = strdup(busName);
@@ -71,4 +110,4 @@ void AboutListenerImpl::Announced(const char * busName, uint16_t version, ajn::S
     announced.objectDescriptionArg = new ajn::MsgArg(objectDescriptionArg);
     announced.aboutDataArg = new ajn::MsgArg(aboutDataArg);
     uv_async_send(&announced_async);
-}
+  }
