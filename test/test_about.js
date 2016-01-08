@@ -7,7 +7,10 @@
 
 var assert = require('assert');
 var alljoyn = require('../');
-var good = false;
+var aboutListenerWasCalled = false;
+
+var actualVersion = null;
+var actualbusName = null;
 
 describe('How an AllJoyn client listens for an About announcement', function() {
   var ALL_GOOD = 0;
@@ -54,11 +57,13 @@ describe('How an AllJoyn client listens for an About announcement', function() {
       function(busName, version, port, objectDescriptionArg, aboutDataArg){
         console.log('Announce signal discovered from bus', busName);
         console.log('busName: ' + busName);
+        actualbusName = busName;
         console.log('version: ' + version);
+        actualVersion = version;
         console.log('port: ' + port);
         console.log('objectDescriptionArg: ' + objectDescriptionArg);
         console.log('aboutDataArg: ' + aboutDataArg);
-        good = true;
+        aboutListenerWasCalled = true;
         done();
       }
     );
@@ -66,8 +71,15 @@ describe('How an AllJoyn client listens for an About announcement', function() {
     assert.equal(busAttachment.whoImplements([serviceInterfaceName]), ALL_GOOD);
   });
 
-  it('should respond to whoImplements', function() {
-    assert.equal(good, true);
+  it('should call AboutListener after whoImplements is called', function() {
+    assert.equal(aboutListenerWasCalled, true);
+  });
+  it('should have a bus name', function() {
+    assert.equal(typeof(actualbusName), 'string');
+    assert(actualbusName.length > 0);
+  });
+  it('should have a version of 1', function() {
+    assert.equal(actualVersion, 1);
   });
   
 });

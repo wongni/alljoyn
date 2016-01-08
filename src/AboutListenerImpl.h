@@ -12,11 +12,12 @@ class AboutListenerImpl : public ajn::AboutListener {
 private:
   uv_loop_t *loop;
   uv_async_t announced_async;
+  uv_rwlock_t calllock;
 
   struct CallbackHolder{
     NanCallback* callback;
-    char* data;
-    uv_rwlock_t datalock;
+    const char* busName;
+    int version;
   } announced;
 
 public:
