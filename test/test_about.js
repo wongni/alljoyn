@@ -10,7 +10,8 @@ var alljoyn = require('../');
 var aboutListenerWasCalled = false;
 
 var actualVersion = null;
-var actualbusName = null;
+var actualBusName = null;
+var actualPort = null;
 
 describe('How an AllJoyn client listens for an About announcement', function() {
   var ALL_GOOD = 0;
@@ -57,10 +58,11 @@ describe('How an AllJoyn client listens for an About announcement', function() {
       function(busName, version, port, objectDescriptionArg, aboutDataArg){
         console.log('Announce signal discovered from bus', busName);
         console.log('busName: ' + busName);
-        actualbusName = busName;
+        actualBusName = busName;
         console.log('version: ' + version);
         actualVersion = version;
         console.log('port: ' + port);
+        actualPort = port;
         console.log('objectDescriptionArg: ' + objectDescriptionArg);
         console.log('aboutDataArg: ' + aboutDataArg);
         aboutListenerWasCalled = true;
@@ -75,11 +77,15 @@ describe('How an AllJoyn client listens for an About announcement', function() {
     assert.equal(aboutListenerWasCalled, true);
   });
   it('should have a bus name', function() {
-    assert.equal(typeof(actualbusName), 'string');
-    assert(actualbusName.length > 0);
+    assert.equal(typeof(actualBusName), 'string');
+    assert(actualBusName.length > 0);
   });
   it('should have a version of 1', function() {
     assert.equal(actualVersion, 1);
+  });
+  it('should have a port number', function() {
+    assert.equal(typeof(actualPort), 'number');
+    assert(actualPort > 0);
   });
   
 });

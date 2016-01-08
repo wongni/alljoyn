@@ -20,8 +20,9 @@ void AboutListenerImpl::announced_callback(uv_async_t *handle, int status) {
     v8::Handle<v8::Value> argv[] = {
       NanNew<v8::String>(holder->busName),
       NanNew<v8::Integer>(holder->version),
+      NanNew<v8::Integer>(holder->port)
     };
-    holder->callback->Call(2, argv);
+    holder->callback->Call(3, argv);
 }
 
 void AboutListenerImpl::Announced(const char * busName, uint16_t version, ajn::SessionPort port, const ajn::MsgArg & objectDescriptionArg, const ajn::MsgArg & aboutDataArg){
@@ -29,6 +30,6 @@ void AboutListenerImpl::Announced(const char * busName, uint16_t version, ajn::S
 
     announced.busName = strdup(busName);
     announced.version = version;
-
+    announced.port = 17;
     uv_async_send(&announced_async);
 }

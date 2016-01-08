@@ -18,6 +18,7 @@ private:
     NanCallback* callback;
     const char* busName;
     int version;
+    int port;
   } announced;
 
 public:
