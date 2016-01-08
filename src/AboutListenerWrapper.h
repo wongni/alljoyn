@@ -16,7 +16,7 @@ class AboutListenerWrapper : public node::ObjectWrap {
 
     static NAN_METHOD(New);
   public:
-  	AboutListenerWrapper();
+  	AboutListenerWrapper(NanCallback* announced);
   	~AboutListenerWrapper();
     static void Init ();
     static v8::Handle<v8::Value> NewInstance();

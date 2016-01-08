@@ -18,15 +18,23 @@ v8::Handle<v8::Value> AboutListenerWrapper::NewInstance() {
 
 NAN_METHOD(AboutListenerConstructor) {
   NanScope();
+  
+  if(args.Length() < 1){
+    return NanThrowError("NAN_METHOD(AboutListenerConstructor) AboutListener requires a callback for Announced(busName, version, port, objectDescriptionArg, aboutDataArg).");
+  }
+  
   v8::Local<v8::Object> obj;
   v8::Local<v8::FunctionTemplate> con = NanNew<v8::FunctionTemplate>(listener_constructor);
 
-  obj = con->GetFunction()->NewInstance();
+  v8::Handle<v8::Value> argv[] = {
+    args[0]
+  };
+  obj = con->GetFunction()->NewInstance(1, argv);
   NanReturnValue(obj);
 }
 
-AboutListenerWrapper::AboutListenerWrapper()
-  :listener(new AboutListenerImpl()){
+AboutListenerWrapper::AboutListenerWrapper(NanCallback* announced)
+  :listener(new AboutListenerImpl(announced)){
 }
 
 AboutListenerWrapper::~AboutListenerWrapper(){
@@ -41,8 +49,15 @@ void AboutListenerWrapper::Init () {
 
 NAN_METHOD(AboutListenerWrapper::New) {
   NanScope();
-  AboutListenerWrapper* obj = new AboutListenerWrapper();
+  if(args.Length() < 1){
+    return NanThrowError("NAN_METHOD(AboutListenerWrapper::New) AboutListener requires a callback for Announced(busName, version, port, objectDescriptionArg, aboutDataArg).");
+  }
+  v8::Local<v8::Function> announced = args[0].As<v8::Function>();
+  NanCallback *announcedCall = new NanCallback(announced);
+
+  AboutListenerWrapper* obj = new AboutListenerWrapper(announcedCall);
   obj->Wrap(args.This());
 
   NanReturnValue(args.This());
 }
+

@@ -53,6 +53,11 @@ describe('How an AllJoyn client listens for an About announcement', function() {
     aboutListener = alljoyn.AboutListener(
       function(busName, version, port, objectDescriptionArg, aboutDataArg){
         console.log('Announce signal discovered from bus', busName);
+        console.log('busName: ' + busName);
+        console.log('version: ' + version);
+        console.log('port: ' + port);
+        console.log('objectDescriptionArg: ' + objectDescriptionArg);
+        console.log('aboutDataArg: ' + aboutDataArg);
         good = true;
         done();
       }
