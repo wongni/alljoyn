@@ -20,6 +20,7 @@ class BusConnection : public node::ObjectWrap {
     static NAN_METHOD(Disconnect);
     static NAN_METHOD(CreateInterface);
     static NAN_METHOD(GetInterface);
+    static NAN_METHOD(RegisterAboutListener);
     static NAN_METHOD(RegisterBusListener);
     static NAN_METHOD(UnregisterBusListener);
     static NAN_METHOD(RegisterBusObject);
@@ -31,6 +32,7 @@ class BusConnection : public node::ObjectWrap {
     static NAN_METHOD(RegisterSignalHandler);
     static NAN_METHOD(GetConnectSpec);
     static NAN_METHOD(Ping);
+    static NAN_METHOD(WhoImplements);
     static NAN_METHOD(GetUniqueName);
 
   public:

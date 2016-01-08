@@ -2,6 +2,7 @@
 
 #include "BusConnection.h"
 #include "InterfaceWrapper.h"
+#include "AboutListenerWrapper.h"
 #include "BusListenerWrapper.h"
 #include "SessionPortListenerWrapper.h"
 #include "BusObjectWrapper.h"
@@ -51,6 +52,7 @@ void BusConnection::Init () {
   NODE_SET_PROTOTYPE_METHOD(tpl, "disconnect", BusConnection::Disconnect);
   NODE_SET_PROTOTYPE_METHOD(tpl, "createInterface", BusConnection::CreateInterface);
   NODE_SET_PROTOTYPE_METHOD(tpl, "getInterface", BusConnection::GetInterface);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "registerAboutListener", BusConnection::RegisterAboutListener);
   NODE_SET_PROTOTYPE_METHOD(tpl, "registerBusListener", BusConnection::RegisterBusListener);
   NODE_SET_PROTOTYPE_METHOD(tpl, "unregisterBusListener", BusConnection::UnregisterBusListener);
   NODE_SET_PROTOTYPE_METHOD(tpl, "registerBusObject", BusConnection::RegisterBusObject);
@@ -62,6 +64,7 @@ void BusConnection::Init () {
   NODE_SET_PROTOTYPE_METHOD(tpl, "registerSignalHandler", BusConnection::RegisterSignalHandler);
   NODE_SET_PROTOTYPE_METHOD(tpl, "getConnectSpec", BusConnection::GetConnectSpec);
   NODE_SET_PROTOTYPE_METHOD(tpl, "ping", BusConnection::Ping);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "whoImplements", BusConnection::WhoImplements);
   NODE_SET_PROTOTYPE_METHOD(tpl, "getUniqueName", BusConnection::GetUniqueName);
 }
 
@@ -150,6 +153,18 @@ NAN_METHOD(BusConnection::GetInterface) {
   interface = const_cast<ajn::InterfaceDescription*>(connection->bus->GetInterface(name));
   InterfaceWrapper* wrapper = node::ObjectWrap::Unwrap<InterfaceWrapper>(args[1].As<v8::Object>());
   wrapper->interface = interface;
+
+  NanReturnUndefined();
+}
+
+NAN_METHOD(BusConnection::RegisterAboutListener) {
+  NanScope();
+  if (args.Length() == 0)
+    return NanThrowError("RegisterAboutListener requires an AboutListener argument");
+
+  BusConnection* connection = node::ObjectWrap::Unwrap<BusConnection>(args.This());
+  AboutListenerWrapper* wrapper = node::ObjectWrap::Unwrap<AboutListenerWrapper>(args[0].As<v8::Object>());
+  connection->bus->RegisterAboutListener(*(wrapper->listener));
 
   NanReturnUndefined();
 }
@@ -300,4 +315,28 @@ NAN_METHOD(BusConnection::GetUniqueName){
   BusConnection* connection = node::ObjectWrap::Unwrap<BusConnection>(args.This());
   qcc::String uniqueName = connection->bus->GetUniqueName();
   NanReturnValue(NanNew<v8::String>(uniqueName.c_str()));
+}
+
+NAN_METHOD(BusConnection::WhoImplements) {
+  NanScope();
+  if (args.Length() < 1 || !args[0]->IsArray())
+    return NanThrowError("WhoImplements requires an array of interface names.");
+  
+  // TODO: there must be better ways to go from
+  // JavaScript array to V8 array to a C++ char** 
+
+  v8::Local<v8::Array> v8InterfaceNames = v8::Local<v8::Array>::Cast(args[0]);
+
+  const char** interfaceNames;
+  interfaceNames = new const char*[v8InterfaceNames->Length()];
+
+  uint32_t i;
+  for (i = 0; i < v8InterfaceNames->Length(); ++i)
+    interfaceNames[i] = strdup(*NanUtf8String(v8InterfaceNames->Get(i)));
+
+  size_t numberInterfaceNames = sizeof(interfaceNames) / sizeof(interfaceNames[0]);
+
+  BusConnection* connection = node::ObjectWrap::Unwrap<BusConnection>(args.This());
+  QStatus status = connection->bus->WhoImplements(interfaceNames, numberInterfaceNames);
+  NanReturnValue(NanNew<v8::Integer>(static_cast<int>(status)));
 }

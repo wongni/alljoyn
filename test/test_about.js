@@ -7,6 +7,7 @@
 
 var assert = require('assert');
 var alljoyn = require('../');
+var good = false;
 
 describe('How an AllJoyn client listens for an About announcement', function() {
   var ALL_GOOD = 0;
@@ -52,13 +53,16 @@ describe('How an AllJoyn client listens for an About announcement', function() {
     aboutListener = alljoyn.AboutListener(
       function(busName, version, port, objectDescriptionArg, aboutDataArg){
         console.log('Announce signal discovered from bus', busName);
+        good = true;
+        done();
       }
     );
     assert.equal(busAttachment.registerAboutListener(aboutListener), undefined);
+    assert.equal(busAttachment.whoImplements([serviceInterfaceName]), ALL_GOOD);
   });
 
   it('should respond to whoImplements', function() {
-    assert.equal(busAttachment.whoImplements([serviceInterfaceName]), ALL_GOOD);
+    assert.equal(good, true);
   });
   
 });

@@ -2,6 +2,9 @@
 // how to run it? after running npm install:
 // > <project_root>/build/Release/sample-chat -s detroit
 
+// TODO: start, inspect and stop OS process from within the test
+ // http://stackoverflow.com/questions/20643470/execute-a-command-line-binary-with-node-js
+
 var assert = require('assert');
 var alljoyn = require('../');
 

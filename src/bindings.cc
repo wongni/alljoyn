@@ -2,6 +2,7 @@
 #include <nan.h>
 #include "BusConnection.h"
 #include "InterfaceWrapper.h"
+#include "AboutListenerWrapper.h"
 #include "BusListenerWrapper.h"
 #include "BusObjectWrapper.h"
 #include "SessionPortListenerWrapper.h"
@@ -13,7 +14,8 @@ using namespace v8;
 void init(Handle<Object> target) {
   BusConnection::Init();
   InterfaceWrapper::Init();
-  BusListenerWrapper::Init();
+  AboutListenerWrapper::Init();
+  AboutListenerWrapper::Init();
   BusObjectWrapper::Init();
   SessionPortListenerWrapper::Init();
   NotificationWrapper::Init();
@@ -22,8 +24,10 @@ void init(Handle<Object> target) {
   target->Set(NanNew<String>("BusAttachment"), busWrap);
   Local<Function> interfaceWrap = FunctionTemplate::New(InterfaceDescriptionWrapper)->GetFunction();
   target->Set(NanNew<String>("InterfaceDescription"), interfaceWrap);
-  Local<Function> listenerConstructor = FunctionTemplate::New(BusListenerConstructor)->GetFunction();
-  target->Set(NanNew<String>("BusListener"), listenerConstructor);
+  Local<Function> aboutListenerConstructor = FunctionTemplate::New(AboutListenerConstructor)->GetFunction();
+  target->Set(NanNew<String>("AboutListener"), aboutListenerConstructor);
+  Local<Function> busListenerConstructor = FunctionTemplate::New(BusListenerConstructor)->GetFunction();
+  target->Set(NanNew<String>("BusListener"), busListenerConstructor);
   Local<Function> objectConstructor = FunctionTemplate::New(BusObjectConstructor)->GetFunction();
   target->Set(NanNew<String>("BusObject"), objectConstructor);
   Local<Function> sessionPortListenerConstructor = FunctionTemplate::New(SessionPortListenerConstructor)->GetFunction();
