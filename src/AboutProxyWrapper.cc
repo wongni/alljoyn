@@ -2,7 +2,6 @@
 
 #include "BusConnection.h"
 #include "AboutProxyWrapper.h"
-#include "AboutProxyImpl.h"
 #include <alljoyn/InterfaceDescription.h>
 #include <alljoyn/AllJoynStd.h>
 
@@ -20,8 +19,8 @@ v8::Handle<v8::Value> AboutProxyWrapper::NewInstance() {
 NAN_METHOD(AboutProxyConstructor) {
   NanScope();
   
-  if(args.Length() < 1){
-    return NanThrowError("NAN_METHOD(AboutProxyConstructor) AboutProxy requires busAttachment, busName and sessionId.");
+  if(args.Length() < 2){
+    return NanThrowError("NAN_METHOD(AboutProxyConstructor) AboutProxy requires busAttachment and busName. sessionId is optional.");
   }
   
   v8::Local<v8::Object> obj;
@@ -37,7 +36,7 @@ NAN_METHOD(AboutProxyConstructor) {
 }
 
 AboutProxyWrapper::AboutProxyWrapper(ajn::BusAttachment* busAttachment, const char* busName, ajn::SessionId sessionId)
-  :proxy(new AboutProxyImpl(busAttachment, busName, sessionId)){
+  :proxy(new ajn::AboutProxy(*busAttachment, busName, sessionId)){
 }
 
 AboutProxyWrapper::~AboutProxyWrapper(){
@@ -50,6 +49,9 @@ void AboutProxyWrapper::Init () {
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
   NODE_SET_PROTOTYPE_METHOD(tpl, "getObjectDescription", AboutProxyWrapper::GetObjectDescription);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "getSessionId", AboutProxyWrapper::GetSessionId);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "getUniqueName", AboutProxyWrapper::GetUniqueName);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "getVersion", AboutProxyWrapper::GetVersion);
 
   // NODE_SET_PROTOTYPE_METHOD(tpl, "getAboutData", AboutProxyWrapper::GetAboutData);
   // NODE_SET_PROTOTYPE_METHOD(tpl, "getVersion", AboutProxyWrapper::GetVersion);
@@ -71,13 +73,40 @@ NAN_METHOD(AboutProxyWrapper::New) {
   NanReturnValue(args.This());
 }
 
+NAN_METHOD(AboutProxyWrapper::GetSessionId) {
+  NanScope();
+  AboutProxyWrapper* wrapper = node::ObjectWrap::Unwrap<AboutProxyWrapper>(args.This());
+  ajn::SessionId sessionId = wrapper->proxy->GetSessionId();
+  NanReturnValue(NanNew<v8::Integer>(static_cast<int>(sessionId)));
+}
+
+NAN_METHOD(AboutProxyWrapper::GetUniqueName) {
+  NanScope();
+  AboutProxyWrapper* wrapper = node::ObjectWrap::Unwrap<AboutProxyWrapper>(args.This());
+  qcc::String uniqueName = wrapper->proxy->GetUniqueName();
+  NanReturnValue(NanNew<v8::String>(uniqueName.c_str()));
+}
+
+NAN_METHOD(AboutProxyWrapper::GetVersion) {
+  NanScope();
+  AboutProxyWrapper* wrapper = node::ObjectWrap::Unwrap<AboutProxyWrapper>(args.This());
+  uint16_t ver = 0;
+  try {
+    QStatus status = wrapper->proxy->GetVersion(ver);
+    NanReturnValue(NanNew<v8::Integer>(status));
+  } catch () {
+    NanReturnValue(NanNew<v8::Integer>(-1));
+  }
+}
+
 NAN_METHOD(AboutProxyWrapper::GetObjectDescription) {
   NanScope();
   
-  // AboutProxyWrapper* wrapper = node::ObjectWrap::Unwrap<AboutProxyWrapper>(args.This());
+  AboutProxyWrapper* wrapper = node::ObjectWrap::Unwrap<AboutProxyWrapper>(args.This());
   // ajn::MsgArg* objectDescription = new ajn::MsgArg();
-  // ajn::MsgArg objArg;
-  // QStatus status = wrapper->proxy->GetObjectDescription(objArg);
-  // NanReturnValue(NanNew<v8::Integer>(static_cast<int>(status)));
-  NanReturnValue(NanNew<v8::Integer>(0));
+  ajn::MsgArg objArg = NULL;
+  
+  QStatus status = wrapper->proxy->GetObjectDescription(objArg);
+  NanReturnValue(NanNew<v8::Integer>(static_cast<int>(status)));
+  // NanReturnValue(NanNew<v8::Integer>(0));
 }

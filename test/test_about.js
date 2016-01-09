@@ -57,21 +57,25 @@ describe('An AllJoyn about announcement', function() {
       
       // once the Announced callback has fired let's go ahead and 
       // join the session and get more About info
-      var sessionID = 0;
-      sessionID = busAttachment.joinSession(busName, port, sessionID);
-      assert(sessionID > 0);
-      sessionfulData.sessionID = sessionID;
+      var sessionId = 0;
+      assert.equal(busAttachment.joinSession(busName, port, sessionId), ALL_GOOD);
+      assert.equal(sessionId,17);
+      sessionfulData.sessionId = sessionId;
       
       // let's get the About proxy
-      var aboutProxy = alljoyn.AboutProxy(busAttachment, busName, sessionID);
+      var aboutProxy = alljoyn.AboutProxy(busAttachment, busName, sessionId);
       assert.equal(typeof(aboutProxy), 'object');
 
       // now that we have the About proxy we can grab the Object Description
       // sessionfulData.objectDescription = aboutProxy.getObjectDescription();
+      assert.equal(aboutProxy.getSessionId(), sessionId);
+      assert.equal(typeof(aboutProxy.getUniqueName()), 'string');
+      assert(aboutProxy.getUniqueName().length > 0);
+      assert.equal(aboutProxy.getVersion(), 5000);
       assert.equal(aboutProxy.getObjectDescription(), ALL_GOOD);
-      // assert.equal(typeof(sessionfulData.objectDescription), 'object');
+      assert.equal(typeof(sessionfulData.objectDescription), 'object');
       // and the About Data
-      // sessionfulData.aboutData = aboutProxy.getAboutData("en");
+      sessionfulData.aboutData = aboutProxy.getAboutData("en");
       
       // the done function in this callback tells the test framework
       // that the 'before' work is done and now we can proceed to the tests
