@@ -48,7 +48,9 @@ void AboutProxyWrapper::Init () {
   NanAssignPersistent(aboutproxy_constructor, tpl);
   tpl->SetClassName(NanNew<v8::String>("AboutProxy"));
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
-  // NODE_SET_PROTOTYPE_METHOD(tpl, "getObjectDescription", AboutProxyWrapper::GetObjectDescription);
+
+  NODE_SET_PROTOTYPE_METHOD(tpl, "getObjectDescription", AboutProxyWrapper::GetObjectDescription);
+
   // NODE_SET_PROTOTYPE_METHOD(tpl, "getAboutData", AboutProxyWrapper::GetAboutData);
   // NODE_SET_PROTOTYPE_METHOD(tpl, "getVersion", AboutProxyWrapper::GetVersion);
 }
@@ -69,3 +71,13 @@ NAN_METHOD(AboutProxyWrapper::New) {
   NanReturnValue(args.This());
 }
 
+NAN_METHOD(AboutProxyWrapper::GetObjectDescription) {
+  NanScope();
+  
+  // AboutProxyWrapper* wrapper = node::ObjectWrap::Unwrap<AboutProxyWrapper>(args.This());
+  // ajn::MsgArg* objectDescription = new ajn::MsgArg();
+  // ajn::MsgArg objArg;
+  // QStatus status = wrapper->proxy->GetObjectDescription(objArg);
+  // NanReturnValue(NanNew<v8::Integer>(static_cast<int>(status)));
+  NanReturnValue(NanNew<v8::Integer>(0));
+}

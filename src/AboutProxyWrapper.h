@@ -15,6 +15,7 @@ class AboutProxyWrapper : public node::ObjectWrap {
   private:
 
     static NAN_METHOD(New);
+    static NAN_METHOD(GetObjectDescription);
   public:
     AboutProxyWrapper(ajn::BusAttachment* busAttachment, const char* busName, ajn::SessionId sessionId);
     ~AboutProxyWrapper();
