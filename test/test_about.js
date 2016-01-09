@@ -35,6 +35,7 @@ var setupBusAttachment = function(applicationName) {
 describe('An AllJoyn about announcement', function() {
   var aboutListenerWasCalled = false;
   var sessionlessData = {};
+  var sessionfulData = {};
 
   before(function(done){
     var applicationName = 'AboutPlusServiceTest';
@@ -59,11 +60,18 @@ describe('An AllJoyn about announcement', function() {
       var sessionID = 0;
       sessionID = busAttachment.joinSession(busName, port, sessionID);
       assert(sessionID > 0);
-      var aboutProxy = alljoyn.aboutProxy(busAttachment, busName, sessionID);
+      sessionfulData.sessionID = sessionID;
+      
+      // let's get the About proxy
+      var aboutProxy = alljoyn.AboutProxy(busAttachment, busName, sessionID);
       assert.equal(typeof(aboutProxy), 'object');
 
+      // now that we have the About proxy we can grab the Object Description
+      // sessionfulData.objectDescription = aboutProxy.getObjectDescription();
 
-
+      // and the About Data
+      // sessionfulData.aboutData = aboutProxy.getAboutData("en");
+      
       // the done function in this callback tells the test framework
       // that the 'before' work is done and now we can proceed to the tests
       done();
@@ -120,8 +128,6 @@ describe('An AllJoyn about announcement', function() {
     assert.equal(Object.keys(sessionlessData.aboutData).length, 7);
   });
   it('should give us more About information after joining a session', function() {
-    busAttachment.joinSession(name, port, sessionID);
-    aboutProxy = joinSessionGetAboutProxy(busAttachment);
-    assert.equal(Object.keys(sessionlessData.aboutData).length, 500);
+    assert.equal(Object.keys(sessionfulData.aboutData).length, 500);
   });
 });
