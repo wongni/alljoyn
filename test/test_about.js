@@ -58,7 +58,9 @@ describe('An AllJoyn about announcement', function() {
       // once the Announced callback has fired let's go ahead and 
       // join the session and get more About info
       var sessionId = 0;
-      assert.equal(busAttachment.joinSession(busName, port, sessionId), ALL_GOOD);
+      sessionId = busAttachment.joinSession(busName, port, sessionId);
+      console.log('sessionId: ' + sessionId);
+      // TODO: how to check for good joinSession?
       assert.equal(sessionId,17);
       sessionfulData.sessionId = sessionId;
       
