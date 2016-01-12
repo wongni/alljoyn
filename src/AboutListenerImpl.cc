@@ -55,7 +55,8 @@ void AboutListenerImpl::announced_callback(uv_async_t *handle, int status) {
   // const ajn::MsgArg* aboutDataArgIn = holder->aboutDataArg;
   // msgArgToObject(aboutDataArgIn, 0, aboutDataArgOut);
   v8::Local<v8::Object> aboutData = v8::Object::New();
-  ajn::AboutData ajnAboutData(*holder->aboutDataArg);
+  ajn::MsgArg aboutDataArg = *holder->aboutDataArg;
+  ajn::AboutData ajnAboutData(aboutDataArg);
   size_t count = ajnAboutData.GetFields();
   const char** fields = new const char*[count];
   ajnAboutData.GetFields(fields, count);

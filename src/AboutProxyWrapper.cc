@@ -49,12 +49,10 @@ void AboutProxyWrapper::Init () {
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
   NODE_SET_PROTOTYPE_METHOD(tpl, "getObjectDescription", AboutProxyWrapper::GetObjectDescription);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "getAboutData", AboutProxyWrapper::GetAboutData);
   NODE_SET_PROTOTYPE_METHOD(tpl, "getSessionId", AboutProxyWrapper::GetSessionId);
   NODE_SET_PROTOTYPE_METHOD(tpl, "getUniqueName", AboutProxyWrapper::GetUniqueName);
   NODE_SET_PROTOTYPE_METHOD(tpl, "getVersion", AboutProxyWrapper::GetVersion);
-
-  // NODE_SET_PROTOTYPE_METHOD(tpl, "getAboutData", AboutProxyWrapper::GetAboutData);
-  // NODE_SET_PROTOTYPE_METHOD(tpl, "getVersion", AboutProxyWrapper::GetVersion);
 }
 
 NAN_METHOD(AboutProxyWrapper::New) {
@@ -132,6 +130,69 @@ NAN_METHOD(AboutProxyWrapper::GetObjectDescription) {
   
   if (status == ER_OK)
     NanReturnValue(objectDescription);
+  else
+    NanReturnValue(NanNew<v8::String>(std::string(QCC_StatusText(status))));
+}
+
+
+NAN_METHOD(AboutProxyWrapper::GetAboutData) {
+  NanScope();
+  
+  if(args.Length() < 1){
+    return NanThrowError("NAN_METHOD(AboutProxyWrapper::GetAboutData) GetAboutData requires a language tag.");
+  }
+
+  char* languageTag = strdup(*NanUtf8String(args[0]));
+
+  AboutProxyWrapper* wrapper = node::ObjectWrap::Unwrap<AboutProxyWrapper>(args.This());
+  ajn::MsgArg aboutDataArg;
+  QStatus status = wrapper->proxy->GetAboutData(languageTag, aboutDataArg);
+  
+  // this aboutData object will head back to Node.js after we 
+  // populate it using the AllJoyn helper methods
+  // const ajn::MsgArg* aboutDataArgIn = holder->aboutDataArg;
+  // msgArgToObject(aboutDataArgIn, 0, aboutDataArgOut);
+  v8::Local<v8::Object> aboutData = v8::Object::New();
+  ajn::AboutData ajnAboutData(aboutDataArg);
+  size_t count = ajnAboutData.GetFields();
+  const char** fields = new const char*[count];
+  ajnAboutData.GetFields(fields, count);
+
+  for (size_t i = 0; i < count; ++i) {
+    ajn::MsgArg* tmp;
+    ajnAboutData.GetField(fields[i], tmp, NULL);
+    if (tmp->Signature() == "s") {
+      const char* tmp_s;
+      tmp->Get("s", &tmp_s);
+      aboutData->Set(NanNew<v8::String>(fields[i]), NanNew<v8::String>(tmp_s));
+    } else if (tmp->Signature() == "ay") {
+      size_t lay;
+      uint8_t* pay;
+      tmp->Get("ay", &lay, &pay);
+      v8::Local<v8::Array> v8_pay = v8::Array::New(lay);
+      for (size_t j = 0; j < lay; ++j) {
+        v8_pay->Set(j, NanNew<v8::Integer>(pay[j]));
+      }
+      aboutData->Set(NanNew<v8::String>(fields[i]), v8_pay);
+    } else if (tmp->Signature() == "as") {
+      // TODO: need to write a test to hit this block
+      // it is only called after a session is created
+      size_t las;
+      ajn::MsgArg* as_arg;
+      tmp->Get("as", &las, &as_arg);
+      v8::Local<v8::Array> v8_las = v8::Array::New(las);
+      for (size_t j = 0; j < las; ++j) {
+        const char* tmp_s;
+        as_arg[j].Get("s", &tmp_s);
+        v8_las->Set(j, NanNew<v8::String>(tmp_s));
+      }
+      aboutData->Set(NanNew<v8::String>(fields[i]), v8_las);
+    }
+  }
+  delete [] fields;
+
+  if (status == ER_OK)
+    NanReturnValue(aboutData);
   else
     NanReturnValue(NanNew<v8::String>(std::string(QCC_StatusText(status))));
 }

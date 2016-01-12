@@ -78,8 +78,7 @@ describe('An AllJoyn about announcement', function() {
       // About Data and Version.
       sessionfulData.version = aboutProxy.getVersion();
       sessionfulData.objectDescription = aboutProxy.getObjectDescription();
-      
-      // sessionfulData.aboutData = aboutProxy.getAboutData("en");
+      sessionfulData.aboutData = aboutProxy.getAboutData('en');
       
       // the done function in this callback tells the test framework
       // that the 'before' work is done and now we can proceed to the tests
@@ -143,12 +142,19 @@ describe('An AllJoyn about announcement', function() {
     assert.equal(Object.prototype.toString.call( sessionfulData.objectDescription['/example/path'] ), '[object Array]');
     assert.equal(sessionfulData.objectDescription['/example/path'][0], 'com.example.about.feature.interface.sample');
   });
-
-  // it('should give us more About information after joining a session', function() {
-  //   assert.equal(sessionfulData.version, sessionlessData.version);
-  //   assert.equal(typeof(sessionfulData.objectDescription), 'object');
-  //   // assert.equal(typeof(sessionfulData.aboutData), 'object');
-  //
-  //   // assert.equal(Object.keys(sessionfulData.aboutData).length, 500);
-  // });
+  it('should have About data', function() {
+    assert.equal(typeof(sessionfulData.aboutData), 'object');
+  });
+  it('should have a valid DeviceID', function() {
+    assert.equal(sessionfulData.aboutData['DeviceId'], '93c06771-c725-48c2-b1ff-6a2a59d445b8');
+  });
+  it('should have a valid model number', function() {
+    assert.equal(sessionfulData.aboutData['ModelNumber'],'123456');
+  });
+  it('should have a valid hex AppId', function() {
+    assert.equal(sessionfulData.aboutData['AppId'][1].toString(16),'b3');
+  });
+  it('should have the 14 metadata fields published the Announce signal', function() {
+    assert.equal(Object.keys(sessionfulData.aboutData).length, 14);
+  });
 });
