@@ -11,8 +11,9 @@ var assert = require('assert');
 var alljoyn = require('../');
 
 var ALL_GOOD = 0;
+var SESSION_PORT = 900;
 
-var setupClientBusAttachment = function(applicationName) {
+var setupClientBusAttachment = function(clientApplicationName) {
   // sanity check test suite
   assert.equal(true, true);
   // sanity check AllJoyn bus
@@ -21,7 +22,7 @@ var setupClientBusAttachment = function(applicationName) {
   // for this suite to work, the AllJoyn AboutPlusService sample must be running
   // how to run it? after running npm install, run from the command line:
   // ./build/Release/sample-about-plus-service
-  clientBusAttachment = alljoyn.BusAttachment(applicationName, true);
+  clientBusAttachment = alljoyn.BusAttachment(clientApplicationName, true);
   assert.equal(typeof clientBusAttachment, 'object');
 
   // start the bus attachment
@@ -32,18 +33,61 @@ var setupClientBusAttachment = function(applicationName) {
   return clientBusAttachment;
 }
 
+var portListener = alljoyn.SessionPortListener(
+  function(port, joiner){
+    console.log("AcceptSessionJoiner", port, joiner);
+    if (port != SESSION_PORT) {
+      return false;
+    } else {
+      return true;
+    }
+  },
+  function(port, sessionId, joiner){
+    console.log("SessionJoined", port, sessionId, joiner);
+  }
+);
+
+var setupServiceBusAttachment = function(serviceApplicationName) {
+  serviceBusAttachment = alljoyn.BusAttachment(serviceApplicationName, true);
+  assert.equal(serviceBusAttachment.start(), ALL_GOOD);
+  assert.equal(serviceBusAttachment.connect(), ALL_GOOD);
+  assert.equal(serviceBusAttachment.bindSessionPort(SESSION_PORT, portListener), ALL_GOOD);
+  var aboutData = alljoyn.AboutData('en');
+  assert.equal(aboutData.setAppId('01b3ba14-1e82-11e4-8651-d1561d5d46b0'), ALL_GOOD);
+  assert.equal(aboutData.setDeviceName("My Device Name"), ALL_GOOD);
+  assert.equal(aboutData.setDeviceId("93c06771-c725-48c2-b1ff-6a2a59d445b8"), ALL_GOOD);
+  assert.equal(aboutData.setAppName("Application"), ALL_GOOD);
+  assert.equal(aboutData.setManufacturer("Manufacturer"), ALL_GOOD);
+  assert.equal(aboutData.setModelNumber("123456"), ALL_GOOD);
+  assert.equal(aboutData.setDescription("A poetic description of this application"), ALL_GOOD);
+  assert.equal(aboutData.setDateOfManufacture("2014-03-24"), ALL_GOOD);
+  assert.equal(aboutData.setSoftwareVersion("0.1.2"), ALL_GOOD);
+  assert.equal(aboutData.setHardwareVersion("0.0.1"), ALL_GOOD);
+  assert.equal(aboutData.setSupportUrl("http://www.example.org"), ALL_GOOD);
+
+  assert(aboutData.isValid('en'));
+  
+  return serviceBusAttachment;
+}
+
 describe('An AllJoyn about announcement', function() {
   var aboutListenerWasCalled = false;
   var sessionlessData = {};
   var sessionfulData = {};
   var clientBusAttachment = null;
+  var serviceBusAttachment = null;
+  
+  var serviceApplicationName = 'Test About Service';
+  var clientApplicationName = 'Test About Client';
   
   before(function(done){
-    var applicationName = 'AboutPlusServiceTest';
     var serviceInterfaceName = 'com.example.about.feature.interface.sample';
 
-    // setup the Bus Attachment with the Application Name
-    clientBusAttachment = setupClientBusAttachment(applicationName);
+    // setup the client Bus Attachment with the Application Name
+    clientBusAttachment = setupClientBusAttachment(clientApplicationName);
+
+    // setup the service Bus Attachment with the Application Name
+    serviceBusAttachment = setupServiceBusAttachment(serviceApplicationName);
 
     // create an Announced callback that will get called
     // after the AboutListener is registered and the
