@@ -103,7 +103,7 @@ void AboutListenerImpl::Announced(const char * busName, uint16_t version, ajn::S
 
   announced.busName = strdup(busName);
   announced.version = version;
-  announced.port = 17;
+  announced.port = port;
   announced.objectDescriptionArg = new ajn::MsgArg(objectDescriptionArg);
   announced.aboutDataArg = new ajn::MsgArg(aboutDataArg);
   uv_async_send(&announced_async);

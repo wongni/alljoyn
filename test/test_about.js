@@ -36,13 +36,14 @@ describe('An AllJoyn about announcement', function() {
   var aboutListenerWasCalled = false;
   var sessionlessData = {};
   var sessionfulData = {};
-
+  var busAttachment = null;
+  
   before(function(done){
     var applicationName = 'AboutPlusServiceTest';
     var serviceInterfaceName = 'com.example.about.feature.interface.sample';
 
     // setup the Bus Attachment with the Application Name
-    var busAttachment = setupBusAttachment(applicationName);
+    busAttachment = setupBusAttachment(applicationName);
 
     // create an Announced callback that will get called
     // after the AboutListener is registered and the
@@ -58,26 +59,29 @@ describe('An AllJoyn about announcement', function() {
       // once the Announced callback has fired let's go ahead and 
       // join the session and get more About info
       var sessionId = 0;
+
       sessionId = busAttachment.joinSession(busName, port, sessionId);
-      console.log('sessionId: ' + sessionId);
-      // TODO: how to check for good joinSession?
-      assert.equal(sessionId,17);
-      sessionfulData.sessionId = sessionId;
+      // if the returned sessionId a string then it's an error message
+      // number is good
+      assert.equal(typeof(sessionId),'number');
       
       // let's get the About proxy
       var aboutProxy = alljoyn.AboutProxy(busAttachment, busName, sessionId);
       assert.equal(typeof(aboutProxy), 'object');
 
-      // now that we have the About proxy we can grab the Object Description
-      // sessionfulData.objectDescription = aboutProxy.getObjectDescription();
-      assert.equal(aboutProxy.getSessionId(), sessionId);
-      assert.equal(typeof(aboutProxy.getUniqueName()), 'string');
-      assert(aboutProxy.getUniqueName().length > 0);
-      assert.equal(aboutProxy.getVersion(), 5000);
-      assert.equal(aboutProxy.getObjectDescription(), ALL_GOOD);
-      assert.equal(typeof(sessionfulData.objectDescription), 'object');
-      // and the About Data
-      sessionfulData.aboutData = aboutProxy.getAboutData("en");
+      sessionfulData.sessionId = aboutProxy.getSessionId();
+      assert.equal(sessionfulData.sessionId, sessionId);
+      sessionfulData.uniqueName = aboutProxy.getUniqueName();
+      assert.equal(sessionfulData.uniqueName, busName);
+
+      // now that we have an About Proxy we can grab the Object Description,
+      // About Data and Version.
+      sessionfulData.version = aboutProxy.getVersion();
+      var objectDescription = {};
+      assert.equal(aboutProxy.getObjectDescription(objectDescription), ALL_GOOD);
+      sessionfulData.objectDescription = objectDescription;
+      
+      // sessionfulData.aboutData = aboutProxy.getAboutData("en");
       
       // the done function in this callback tells the test framework
       // that the 'before' work is done and now we can proceed to the tests
@@ -134,7 +138,14 @@ describe('An AllJoyn about announcement', function() {
   it('should have the 7 metadata fields published the Announce signal', function() {
     assert.equal(Object.keys(sessionlessData.aboutData).length, 7);
   });
-  it('should give us more About information after joining a session', function() {
-    // assert.equal(Object.keys(sessionfulData.aboutData).length, 500);
+  it('should have matching version numbers before and after joining a session', function() {
+    assert.equal(sessionfulData.version, sessionlessData.version);
   });
+  // it('should give us more About information after joining a session', function() {
+  //   assert.equal(sessionfulData.version, sessionlessData.version);
+  //   assert.equal(typeof(sessionfulData.objectDescription), 'object');
+  //   // assert.equal(typeof(sessionfulData.aboutData), 'object');
+  //
+  //   // assert.equal(Object.keys(sessionfulData.aboutData).length, 500);
+  // });
 });

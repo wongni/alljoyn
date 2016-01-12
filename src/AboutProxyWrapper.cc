@@ -90,13 +90,13 @@ NAN_METHOD(AboutProxyWrapper::GetUniqueName) {
 NAN_METHOD(AboutProxyWrapper::GetVersion) {
   NanScope();
   AboutProxyWrapper* wrapper = node::ObjectWrap::Unwrap<AboutProxyWrapper>(args.This());
-  uint16_t ver = 0;
-  try {
-    QStatus status = wrapper->proxy->GetVersion(ver);
-    NanReturnValue(NanNew<v8::Integer>(status));
-  } catch () {
-    NanReturnValue(NanNew<v8::Integer>(-1));
-  }
+
+  uint16_t ver;
+  QStatus status = wrapper->proxy->GetVersion(ver);
+  if (status == ER_OK)
+    NanReturnValue(NanNew<v8::Integer>(static_cast<int>(ver)));
+  else
+    NanReturnValue(NanNew<v8::String>(std::string(QCC_StatusText(status))));
 }
 
 NAN_METHOD(AboutProxyWrapper::GetObjectDescription) {

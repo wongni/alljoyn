@@ -33,6 +33,7 @@ class BusConnection : public node::ObjectWrap {
     static NAN_METHOD(GetConnectSpec);
     static NAN_METHOD(Ping);
     static NAN_METHOD(WhoImplements);
+    static NAN_METHOD(EnableConcurrentCallbacks);
     static NAN_METHOD(GetUniqueName);
 
   public:
