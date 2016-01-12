@@ -67,6 +67,8 @@ void BusConnection::Init () {
   NODE_SET_PROTOTYPE_METHOD(tpl, "whoImplements", BusConnection::WhoImplements);
   NODE_SET_PROTOTYPE_METHOD(tpl, "enableConcurrentCallbacks", BusConnection::EnableConcurrentCallbacks);
   NODE_SET_PROTOTYPE_METHOD(tpl, "getUniqueName", BusConnection::GetUniqueName);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "createInterfacesFromXml", BusConnection::CreateInterfacesFromXml);
+
 }
 
 NAN_METHOD(BusConnection::New) {
@@ -348,5 +350,15 @@ NAN_METHOD(BusConnection::WhoImplements) {
 
   BusConnection* connection = node::ObjectWrap::Unwrap<BusConnection>(args.This());
   QStatus status = connection->bus->WhoImplements(interfaceNames, numberInterfaceNames);
+  NanReturnValue(NanNew<v8::Integer>(static_cast<int>(status)));
+}
+
+NAN_METHOD(BusConnection::CreateInterfacesFromXml) {
+  NanScope();
+  if (args.Length() < 1 || !args[0]->IsString())
+    return NanThrowError("CreateInterfacesFromXml requires a an XML string: <node><interface name='com.example.about.feature.interface.sample'><method name='Echo'><arg name='out_arg' type='s' direction='in' /><arg name='return_arg' type='s' direction='out' /></method></interface></node>");
+
+  BusConnection* connection = node::ObjectWrap::Unwrap<BusConnection>(args.This());
+  QStatus status = connection->bus->CreateInterfacesFromXml(strdup(*NanUtf8String(args[0])));
   NanReturnValue(NanNew<v8::Integer>(static_cast<int>(status)));
 }

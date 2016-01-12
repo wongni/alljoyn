@@ -12,6 +12,7 @@ var alljoyn = require('../');
 
 var ALL_GOOD = 0;
 var SESSION_PORT = 900;
+var SERVICE_INTERFACE_NAME = 'com.example.about.feature.interface.sample';
 
 var setupClientBusAttachment = function(clientApplicationName) {
   // sanity check test suite
@@ -64,8 +65,19 @@ var setupServiceBusAttachment = function(serviceApplicationName) {
   assert.equal(aboutData.setSoftwareVersion("0.1.2"), ALL_GOOD);
   assert.equal(aboutData.setHardwareVersion("0.0.1"), ALL_GOOD);
   assert.equal(aboutData.setSupportUrl("http://www.example.org"), ALL_GOOD);
-
   assert(aboutData.isValid('en'));
+  
+  var interfaceXML = " \
+  <node> \
+  <interface name='" + SERVICE_INTERFACE_NAME + "'> \
+  <method name='Echo'> \
+  <arg name='out_arg' type='s' direction='in' /> \
+  <arg name='return_arg' type='s' direction='out' /> \
+  </method> \
+  </interface> \
+  </node>";
+
+  assert.equal(serviceBusAttachment.createInterfacesFromXml(interfaceXML), ALL_GOOD);
   
   return serviceBusAttachment;
 }
@@ -81,7 +93,6 @@ describe('An AllJoyn about announcement', function() {
   var clientApplicationName = 'Test About Client';
   
   before(function(done){
-    var serviceInterfaceName = 'com.example.about.feature.interface.sample';
 
     // setup the client Bus Attachment with the Application Name
     clientBusAttachment = setupClientBusAttachment(clientApplicationName);
@@ -137,7 +148,7 @@ describe('An AllJoyn about announcement', function() {
     
     // call WhoImplements on the service interface name 
     // to trigger the Announced Callback
-    assert.equal(clientBusAttachment.whoImplements([serviceInterfaceName]), ALL_GOOD);
+    assert.equal(clientBusAttachment.whoImplements([SERVICE_INTERFACE_NAME]), ALL_GOOD);
     
   });
 
