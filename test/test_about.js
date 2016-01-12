@@ -77,9 +77,7 @@ describe('An AllJoyn about announcement', function() {
       // now that we have an About Proxy we can grab the Object Description,
       // About Data and Version.
       sessionfulData.version = aboutProxy.getVersion();
-      var objectDescription = {};
-      assert.equal(aboutProxy.getObjectDescription(objectDescription), ALL_GOOD);
-      sessionfulData.objectDescription = objectDescription;
+      sessionfulData.objectDescription = aboutProxy.getObjectDescription();
       
       // sessionfulData.aboutData = aboutProxy.getAboutData("en");
       
@@ -141,6 +139,11 @@ describe('An AllJoyn about announcement', function() {
   it('should have matching version numbers before and after joining a session', function() {
     assert.equal(sessionfulData.version, sessionlessData.version);
   });
+  it('should give us a matching Object Description after joining a session', function() {
+    assert.equal(Object.prototype.toString.call( sessionfulData.objectDescription['/example/path'] ), '[object Array]');
+    assert.equal(sessionfulData.objectDescription['/example/path'][0], 'com.example.about.feature.interface.sample');
+  });
+
   // it('should give us more About information after joining a session', function() {
   //   assert.equal(sessionfulData.version, sessionlessData.version);
   //   assert.equal(typeof(sessionfulData.objectDescription), 'object');

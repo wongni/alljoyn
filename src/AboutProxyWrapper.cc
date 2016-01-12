@@ -103,10 +103,35 @@ NAN_METHOD(AboutProxyWrapper::GetObjectDescription) {
   NanScope();
   
   AboutProxyWrapper* wrapper = node::ObjectWrap::Unwrap<AboutProxyWrapper>(args.This());
-  // ajn::MsgArg* objectDescription = new ajn::MsgArg();
-  ajn::MsgArg objArg = NULL;
+  ajn::MsgArg objectDescriptionArg;
+  QStatus status = wrapper->proxy->GetObjectDescription(objectDescriptionArg);
   
-  QStatus status = wrapper->proxy->GetObjectDescription(objArg);
-  NanReturnValue(NanNew<v8::Integer>(static_cast<int>(status)));
-  // NanReturnValue(NanNew<v8::Integer>(0));
+  // this objectDescription will head back to Node.js after we 
+  // populate it using the AllJoyn helper methods
+  v8::Local<v8::Object> objectDescription = v8::Object::New();
+
+  // use the AllJoyn helper methods to get the data out of 
+  // the AllJoyn ObjectDescription and into the Node.js object
+  ajn::AboutObjectDescription ajnObjectDescription;
+  ajnObjectDescription.CreateFromMsgArg(objectDescriptionArg);
+  ajn::AboutObjectDescription aod(objectDescriptionArg);
+  size_t path_num = aod.GetPaths(NULL, 0);
+  const char** paths = new const char*[path_num];
+  aod.GetPaths(paths, path_num);
+  for (size_t i = 0; i < path_num; ++i) {
+    size_t intf_num = aod.GetInterfaces(paths[i], NULL, 0);
+    const char** intfs = new const char*[intf_num];
+    aod.GetInterfaces(paths[i], intfs, intf_num);
+    v8::Local<v8::Array> interfaceNames = v8::Array::New(intf_num);
+    for (size_t j = 0; j < intf_num; ++j) {
+      interfaceNames->Set(j, NanNew<v8::String>(intfs[j]));
+    }
+    objectDescription->Set(NanNew<v8::String>(paths[i]), interfaceNames);
+    delete [] intfs;
+  }
+  
+  if (status == ER_OK)
+    NanReturnValue(objectDescription);
+  else
+    NanReturnValue(NanNew<v8::String>(std::string(QCC_StatusText(status))));
 }

@@ -20,6 +20,12 @@ AboutListenerImpl::~AboutListenerImpl(){
 void AboutListenerImpl::announced_callback(uv_async_t *handle, int status) {
   CallbackHolder* holder = (CallbackHolder*) handle->data;
 
+
+  // TODO: pull this into a library that can 
+  // be shared with AboutProxyWrapper
+
+  ajn::MsgArg objectDescriptionArg = *holder->objectDescriptionArg;
+
   // this objectDescription will head back to Node.js after we 
   // populate it using the AllJoyn helper methods
   v8::Local<v8::Object> objectDescription = v8::Object::New();
@@ -27,8 +33,8 @@ void AboutListenerImpl::announced_callback(uv_async_t *handle, int status) {
   // use the AllJoyn helper methods to get the data out of 
   // the AllJoyn ObjectDescription and into the Node.js object
   ajn::AboutObjectDescription ajnObjectDescription;
-  ajnObjectDescription.CreateFromMsgArg(*holder->objectDescriptionArg);
-  ajn::AboutObjectDescription aod(*holder->objectDescriptionArg);
+  ajnObjectDescription.CreateFromMsgArg(objectDescriptionArg);
+  ajn::AboutObjectDescription aod(objectDescriptionArg);
   size_t path_num = aod.GetPaths(NULL, 0);
   const char** paths = new const char*[path_num];
   aod.GetPaths(paths, path_num);
