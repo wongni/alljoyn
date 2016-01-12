@@ -12,7 +12,7 @@ var alljoyn = require('../');
 
 var ALL_GOOD = 0;
 
-var setupBusAttachment = function(applicationName) {
+var setupClientBusAttachment = function(applicationName) {
   // sanity check test suite
   assert.equal(true, true);
   // sanity check AllJoyn bus
@@ -21,29 +21,29 @@ var setupBusAttachment = function(applicationName) {
   // for this suite to work, the AllJoyn AboutPlusService sample must be running
   // how to run it? after running npm install, run from the command line:
   // ./build/Release/sample-about-plus-service
-  busAttachment = alljoyn.BusAttachment(applicationName, true);
-  assert.equal(typeof busAttachment, 'object');
+  clientBusAttachment = alljoyn.BusAttachment(applicationName, true);
+  assert.equal(typeof clientBusAttachment, 'object');
 
   // start the bus attachment
-  assert.equal(busAttachment.start(), ALL_GOOD);
+  assert.equal(clientBusAttachment.start(), ALL_GOOD);
 
   // connect to bus
-  assert.equal(busAttachment.connect(), ALL_GOOD);
-  return busAttachment;
+  assert.equal(clientBusAttachment.connect(), ALL_GOOD);
+  return clientBusAttachment;
 }
 
 describe('An AllJoyn about announcement', function() {
   var aboutListenerWasCalled = false;
   var sessionlessData = {};
   var sessionfulData = {};
-  var busAttachment = null;
+  var clientBusAttachment = null;
   
   before(function(done){
     var applicationName = 'AboutPlusServiceTest';
     var serviceInterfaceName = 'com.example.about.feature.interface.sample';
 
     // setup the Bus Attachment with the Application Name
-    busAttachment = setupBusAttachment(applicationName);
+    clientBusAttachment = setupClientBusAttachment(applicationName);
 
     // create an Announced callback that will get called
     // after the AboutListener is registered and the
@@ -60,13 +60,13 @@ describe('An AllJoyn about announcement', function() {
       // join the session and get more About info
       var sessionId = 0;
 
-      sessionId = busAttachment.joinSession(busName, port, sessionId);
+      sessionId = clientBusAttachment.joinSession(busName, port, sessionId);
       // if the returned sessionId a string then it's an error message
       // number is good
       assert.equal(typeof(sessionId),'number');
       
       // let's get the About proxy
-      var aboutProxy = alljoyn.AboutProxy(busAttachment, busName, sessionId);
+      var aboutProxy = alljoyn.AboutProxy(clientBusAttachment, busName, sessionId);
       assert.equal(typeof(aboutProxy), 'object');
 
       sessionfulData.sessionId = aboutProxy.getSessionId();
@@ -89,11 +89,11 @@ describe('An AllJoyn about announcement', function() {
     var aboutListener = alljoyn.AboutListener(announcedCallback);
 
     //register the About Listener with the Announced Callback
-    assert.equal(busAttachment.registerAboutListener(aboutListener), undefined);
+    assert.equal(clientBusAttachment.registerAboutListener(aboutListener), undefined);
     
     // call WhoImplements on the service interface name 
     // to trigger the Announced Callback
-    assert.equal(busAttachment.whoImplements([serviceInterfaceName]), ALL_GOOD);
+    assert.equal(clientBusAttachment.whoImplements([serviceInterfaceName]), ALL_GOOD);
     
   });
 
