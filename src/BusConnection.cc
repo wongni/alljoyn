@@ -68,7 +68,6 @@ void BusConnection::Init () {
   NODE_SET_PROTOTYPE_METHOD(tpl, "enableConcurrentCallbacks", BusConnection::EnableConcurrentCallbacks);
   NODE_SET_PROTOTYPE_METHOD(tpl, "getUniqueName", BusConnection::GetUniqueName);
   NODE_SET_PROTOTYPE_METHOD(tpl, "createInterfacesFromXml", BusConnection::CreateInterfacesFromXml);
-
 }
 
 NAN_METHOD(BusConnection::New) {

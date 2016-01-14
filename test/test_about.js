@@ -13,12 +13,13 @@ var alljoyn = require('../');
 var ALL_GOOD = 0;
 var SESSION_PORT = 900;
 var SERVICE_INTERFACE_NAME = 'com.example.about.feature.interface.sample';
+var BUS_OBJECT_PATH = '/example/path'
 
 var setupClientBusAttachment = function(clientApplicationName) {
   // sanity check test suite
   assert.equal(true, true);
   // sanity check AllJoyn bus
-  assert.equal(typeof alljoyn.BusObject, 'function');
+  assert.equal(typeof alljoyn.BusAttachment, 'function');
 
   // for this suite to work, the AllJoyn AboutPlusService sample must be running
   // how to run it? after running npm install, run from the command line:
@@ -79,6 +80,17 @@ var setupServiceBusAttachment = function(serviceApplicationName) {
 
   assert.equal(serviceBusAttachment.createInterfacesFromXml(interfaceXML), ALL_GOOD);
   
+  // TODO: looks like one needs to create a new subclass of BusObject
+  // and call the protected AddInterface method within the constructor
+  // and then add domain specific functions as well.
+  // Can we create a generic NodeBusObject subclass that does the above?
+  // How can we subclass C++ from Node?
+  var busObject = alljoyn.BusObject(BUS_OBJECT_PATH);
+  assert.equal(serviceBusAttachment.registerBusObject(busObject), ALL_GOOD);
+
+  var aboutObj = alljoyn.AboutObj(serviceBusAttachment);
+  assert.equal(aboutObj.announce(SESSION_PORT, aboutData), ALL_GOOD);
+
   return serviceBusAttachment;
 }
 
@@ -171,9 +183,9 @@ describe('An AllJoyn about announcement', function() {
     assert.equal(typeof(sessionlessData.objectDescription), 'object');
     var objectDescriptionKeys = Object.keys(sessionlessData.objectDescription);
     assert(objectDescriptionKeys.length > 0);
-    assert(objectDescriptionKeys.indexOf('/example/path') > -1);
-    assert.equal(Object.prototype.toString.call( sessionlessData.objectDescription['/example/path'] ), '[object Array]');
-    assert.equal(sessionlessData.objectDescription['/example/path'][0], 'com.example.about.feature.interface.sample');
+    assert(objectDescriptionKeys.indexOf(BUS_OBJECT_PATH) > -1);
+    assert.equal(Object.prototype.toString.call( sessionlessData.objectDescription[BUS_OBJECT_PATH] ), '[object Array]');
+    assert.equal(sessionlessData.objectDescription[BUS_OBJECT_PATH][0], 'com.example.about.feature.interface.sample');
   });
   it('should have About data', function() {
     assert.equal(typeof(sessionlessData.aboutData), 'object');
@@ -194,8 +206,8 @@ describe('An AllJoyn about announcement', function() {
     assert.equal(sessionfulData.version, sessionlessData.version);
   });
   it('should give us a matching Object Description after joining a session', function() {
-    assert.equal(Object.prototype.toString.call( sessionfulData.objectDescription['/example/path'] ), '[object Array]');
-    assert.equal(sessionfulData.objectDescription['/example/path'][0], 'com.example.about.feature.interface.sample');
+    assert.equal(Object.prototype.toString.call( sessionfulData.objectDescription[BUS_OBJECT_PATH] ), '[object Array]');
+    assert.equal(sessionfulData.objectDescription[BUS_OBJECT_PATH][0], 'com.example.about.feature.interface.sample');
   });
   it('should have About data', function() {
     assert.equal(typeof(sessionfulData.aboutData), 'object');

@@ -5,6 +5,7 @@
 #include "AboutListenerWrapper.h"
 #include "AboutProxyWrapper.h"
 #include "AboutDataWrapper.h"
+#include "AboutObjWrapper.h"
 #include "BusListenerWrapper.h"
 #include "BusObjectWrapper.h"
 #include "SessionPortListenerWrapper.h"
@@ -20,6 +21,7 @@ void init(Handle<Object> target) {
   AboutListenerWrapper::Init();
   AboutProxyWrapper::Init();
   AboutDataWrapper::Init();
+  AboutObjWrapper::Init();
   BusObjectWrapper::Init();
   SessionPortListenerWrapper::Init();
   NotificationWrapper::Init();
@@ -37,6 +39,9 @@ void init(Handle<Object> target) {
 
   Local<Function> aboutDataConstructor = FunctionTemplate::New(AboutDataConstructor)->GetFunction();
   target->Set(NanNew<String>("AboutData"), aboutDataConstructor);
+
+  Local<Function> aboutObjConstructor = FunctionTemplate::New(AboutObjConstructor)->GetFunction();
+  target->Set(NanNew<String>("AboutObj"), aboutObjConstructor);
 
   Local<Function> busListenerConstructor = FunctionTemplate::New(BusListenerConstructor)->GetFunction();
   target->Set(NanNew<String>("BusListener"), busListenerConstructor);
