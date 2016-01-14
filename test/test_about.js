@@ -15,45 +15,12 @@ var SESSION_PORT = 900;
 var SERVICE_INTERFACE_NAME = 'com.example.about.feature.interface.sample';
 var BUS_OBJECT_PATH = '/example/path'
 
-var setupClientBusAttachment = function(clientApplicationName) {
-  // sanity check test suite
-  assert.equal(true, true);
-  // sanity check AllJoyn bus
-  assert.equal(typeof alljoyn.BusAttachment, 'function');
-
-  // for this suite to work, the AllJoyn AboutPlusService sample must be running
-  // how to run it? after running npm install, run from the command line:
-  // ./build/Release/sample-about-plus-service
-  clientBusAttachment = alljoyn.BusAttachment(clientApplicationName, true);
-  assert.equal(typeof clientBusAttachment, 'object');
-
-  // start the bus attachment
-  assert.equal(clientBusAttachment.start(), ALL_GOOD);
-
-  // connect to bus
-  assert.equal(clientBusAttachment.connect(), ALL_GOOD);
-  return clientBusAttachment;
-}
-
-var portListener = alljoyn.SessionPortListener(
-  function(port, joiner){
-    console.log("AcceptSessionJoiner", port, joiner);
-    if (port != SESSION_PORT) {
-      return false;
-    } else {
-      return true;
-    }
-  },
-  function(port, sessionId, joiner){
-    console.log("SessionJoined", port, sessionId, joiner);
-  }
-);
-
 var setupServiceBusAttachment = function(serviceApplicationName) {
   serviceBusAttachment = alljoyn.BusAttachment(serviceApplicationName, true);
   assert.equal(serviceBusAttachment.start(), ALL_GOOD);
   assert.equal(serviceBusAttachment.connect(), ALL_GOOD);
-  assert.equal(serviceBusAttachment.bindSessionPort(SESSION_PORT, portListener), ALL_GOOD);
+  assert.equal(serviceBusAttachment.bindSessionPort(SESSION_PORT, sessionPortListenerCallback), ALL_GOOD);
+  
   var aboutData = alljoyn.AboutData('en');
   assert.equal(aboutData.setAppId('01b3ba14-1e82-11e4-8651-d1561d5d46b0'), ALL_GOOD);
   assert.equal(aboutData.setDeviceName("My Device Name"), ALL_GOOD);
@@ -80,18 +47,94 @@ var setupServiceBusAttachment = function(serviceApplicationName) {
 
   assert.equal(serviceBusAttachment.createInterfacesFromXml(interfaceXML), ALL_GOOD);
   
-  // TODO: looks like one needs to create a new subclass of BusObject
-  // and call the protected AddInterface method within the constructor
-  // and then add domain specific functions as well.
-  // Can we create a generic NodeBusObject subclass that does the above?
-  // How can we subclass C++ from Node?
+  var serviceInterfaceDescription = alljoyn.InterfaceDescription();
+  serviceBusAttachment.getInterface(SERVICE_INTERFACE_NAME, serviceInterfaceDescription);
+  assert.notEqual(serviceInterfaceDescription, null);
+
   var busObject = alljoyn.BusObject(BUS_OBJECT_PATH);
+
+  busObject.addInterface(serviceInterfaceDescription)
   assert.equal(serviceBusAttachment.registerBusObject(busObject), ALL_GOOD);
 
   var aboutObj = alljoyn.AboutObj(serviceBusAttachment);
   assert.equal(aboutObj.announce(SESSION_PORT, aboutData), ALL_GOOD);
 
   return serviceBusAttachment;
+}
+
+var setupClientBusAttachment = function(clientApplicationName) {
+  // sanity check test suite
+  assert.equal(true, true);
+  // sanity check AllJoyn bus
+  assert.equal(typeof alljoyn.BusAttachment, 'function');
+
+  // for this suite to work, the AllJoyn AboutPlusService sample must be running
+  // how to run it? after running npm install, run from the command line:
+  // ./build/Release/sample-about-plus-service
+  clientBusAttachment = alljoyn.BusAttachment(clientApplicationName, true);
+  assert.equal(typeof clientBusAttachment, 'object');
+
+  // start the bus attachment
+  assert.equal(clientBusAttachment.start(), ALL_GOOD);
+
+  // connect to bus
+  assert.equal(clientBusAttachment.connect(), ALL_GOOD);
+  return clientBusAttachment;
+}
+
+var sessionPortListenerCallback = alljoyn.SessionPortListener(
+  function(port, joiner){
+    console.log("AcceptSessionJoiner", port, joiner);
+    if (port != SESSION_PORT) {
+      return false;
+    } else {
+      return true;
+    }
+  },
+  function(port, sessionId, joiner){
+    console.log("SessionJoined", port, sessionId, joiner);
+  }
+);
+
+// create an Announced callback that will get called
+// after the AboutListener is registered and the
+// WhoImplements function is called
+var announcedCallback = function(busName, version, port, objectDescription, aboutData){
+  console.log('announcedCallback');
+  aboutListenerWasCalled = true;
+  sessionlessData.busName = busName;
+  sessionlessData.version = version;
+  sessionlessData.port = port;
+  sessionlessData.objectDescription = objectDescription;
+  sessionlessData.aboutData = aboutData;
+  
+  // once the Announced callback has fired let's go ahead and 
+  // join the session and get more About info
+  var sessionId = 0;
+
+  sessionId = clientBusAttachment.joinSession(busName, port, sessionId);
+  // if the returned sessionId a string then it's an error message
+  // number is good
+  assert.equal(typeof(sessionId),'number');
+  
+  // let's get the About proxy
+  var aboutProxy = alljoyn.AboutProxy(clientBusAttachment, busName, sessionId);
+  assert.equal(typeof(aboutProxy), 'object');
+
+  sessionfulData.sessionId = aboutProxy.getSessionId();
+  assert.equal(sessionfulData.sessionId, sessionId);
+  sessionfulData.uniqueName = aboutProxy.getUniqueName();
+  assert.equal(sessionfulData.uniqueName, busName);
+
+  // now that we have an About Proxy we can grab the Object Description,
+  // About Data and Version.
+  sessionfulData.version = aboutProxy.getVersion();
+  sessionfulData.objectDescription = aboutProxy.getObjectDescription();
+  sessionfulData.aboutData = aboutProxy.getAboutData('en');
+  
+  // the done function in this callback tells the test framework
+  // that the 'before' work is done and now we can proceed to the tests
+  done();
 }
 
 describe('An AllJoyn about announcement', function() {
@@ -101,56 +144,26 @@ describe('An AllJoyn about announcement', function() {
   var clientBusAttachment = null;
   var serviceBusAttachment = null;
   
-  var serviceApplicationName = 'Test About Service';
-  var clientApplicationName = 'Test About Client';
+  var serviceApplicationName = 'About Plus Service Example';
+  var clientApplicationName = 'AboutPlusServiceTest';
   
   before(function(done){
 
-    // setup the client Bus Attachment with the Application Name
-    clientBusAttachment = setupClientBusAttachment(clientApplicationName);
-
     // setup the service Bus Attachment with the Application Name
     serviceBusAttachment = setupServiceBusAttachment(serviceApplicationName);
+    var serviceBusUniqueName = serviceBusAttachment.getUniqueName();
+    console.log('serviceBusAttachment: ' + util.inspect(serviceBusAttachment));
+    // setup the client Bus Attachment with the Application Name
+    clientBusAttachment = setupClientBusAttachment(clientApplicationName);
+    var clientBusUniqueName = clientBusAttachment.getUniqueName();
+    console.log('clientBusAttachment: ' + util.inspect(clientBusAttachment));
 
-    // create an Announced callback that will get called
-    // after the AboutListener is registered and the
-    // WhoImplements function is called
-    var announcedCallback = function(busName, version, port, objectDescription, aboutData){
-      aboutListenerWasCalled = true;
-      sessionlessData.busName = busName;
-      sessionlessData.version = version;
-      sessionlessData.port = port;
-      sessionlessData.objectDescription = objectDescription;
-      sessionlessData.aboutData = aboutData;
-      
-      // once the Announced callback has fired let's go ahead and 
-      // join the session and get more About info
-      var sessionId = 0;
-
-      sessionId = clientBusAttachment.joinSession(busName, port, sessionId);
-      // if the returned sessionId a string then it's an error message
-      // number is good
-      assert.equal(typeof(sessionId),'number');
-      
-      // let's get the About proxy
-      var aboutProxy = alljoyn.AboutProxy(clientBusAttachment, busName, sessionId);
-      assert.equal(typeof(aboutProxy), 'object');
-
-      sessionfulData.sessionId = aboutProxy.getSessionId();
-      assert.equal(sessionfulData.sessionId, sessionId);
-      sessionfulData.uniqueName = aboutProxy.getUniqueName();
-      assert.equal(sessionfulData.uniqueName, busName);
-
-      // now that we have an About Proxy we can grab the Object Description,
-      // About Data and Version.
-      sessionfulData.version = aboutProxy.getVersion();
-      sessionfulData.objectDescription = aboutProxy.getObjectDescription();
-      sessionfulData.aboutData = aboutProxy.getAboutData('en');
-      
-      // the done function in this callback tells the test framework
-      // that the 'before' work is done and now we can proceed to the tests
-      done();
-    }
+    //TODO: do some assertion testing on the two bus attachments.
+    assert.equal(typeof(clientBusUniqueName), 'string');
+    assert.equal(typeof(serviceBusUniqueName), 'string');
+    assert.equal(clientBusUniqueName.length, 11);
+    assert.equal(serviceBusUniqueName.length, 11);
+    assert.notEqual(serviceBusUniqueName, clientBusUniqueName);
 
     // create a new About Listener
     var aboutListener = alljoyn.AboutListener(announcedCallback);
@@ -161,6 +174,7 @@ describe('An AllJoyn about announcement', function() {
     // call WhoImplements on the service interface name 
     // to trigger the Announced Callback
     assert.equal(clientBusAttachment.whoImplements([SERVICE_INTERFACE_NAME]), ALL_GOOD);
+    console.log('whoImplements');
     
   });
 

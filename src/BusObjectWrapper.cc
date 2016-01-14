@@ -95,6 +95,8 @@ NAN_METHOD(BusObjectWrapper::Signal) {
   NanReturnValue(NanNew<v8::Integer>(static_cast<int>(status)));
 }
 
+// this is a subclass of BusinessObject that allows access to 
+// protected functions like AddInterface.
 BusObjectImpl::BusObjectImpl(const char* path):ajn::BusObject(path){
 }
 

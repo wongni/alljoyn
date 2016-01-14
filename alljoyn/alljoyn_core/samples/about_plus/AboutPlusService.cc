@@ -190,6 +190,8 @@ int main(int argc, char** argv)
         exit(1);
     }
 
+    printf("BusAttachment Unique Name (%s)\n", bus.GetUniqueName().c_str());
+
     /* Perform the service asynchronously until the user signals for an exit. */
     if (ER_OK == status) {
         while (s_interrupt == false) {
