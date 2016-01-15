@@ -412,6 +412,18 @@
         'alljoyn/alljoyn_core/samples/chat/linux/chat.cc',
         'alljoyn/alljoyn_core/router/bundled/BundledRouter.cc'
       ]
+    },
+    {
+      'target_name': 'sample-mock-device-discovery',
+      'type': 'executable',
+      'dependencies': [
+        'alljoyn',
+        'ajrouter'
+      ],
+      'sources': [
+        'alljoyn/alljoyn_core/samples/mock_devices/DiscoveryService.cc',
+        'alljoyn/alljoyn_core/router/bundled/BundledRouter.cc'
+      ]
     }
   ]
 }

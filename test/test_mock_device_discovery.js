@@ -1,6 +1,6 @@
 // for this suite to work, the AllJoyn AboutPlusService sample must be running
 // how to run it? after running npm install:
-// > <project_root>/build/Release/sample-about-plus-service
+// > <project_root>/build/Release/sample-mock-device-discovery
 
 // TODO: start, inspect and stop OS process from within the test
 // http://stackoverflow.com/questions/20643470/execute-a-command-line-binary-with-node-js
@@ -12,7 +12,7 @@ var alljoyn = require('../');
 
 var ALL_GOOD = 0;
 var SESSION_PORT = 900;
-var SERVICE_INTERFACE_NAME = 'com.example.about.feature.interface.sample';
+var SERVICE_INTERFACE_NAME = 'com.se.bus.discovery';
 var BUS_OBJECT_PATH = '/example/path'
 
 var sessionlessData = {};
@@ -201,7 +201,7 @@ describe('An AllJoyn about announcement', function() {
     assert(objectDescriptionKeys.length > 0);
     assert(objectDescriptionKeys.indexOf(BUS_OBJECT_PATH) > -1);
     assert.equal(Object.prototype.toString.call( sessionlessData.objectDescription[BUS_OBJECT_PATH] ), '[object Array]');
-    assert.equal(sessionlessData.objectDescription[BUS_OBJECT_PATH][0], 'com.example.about.feature.interface.sample');
+    assert.equal(sessionlessData.objectDescription[BUS_OBJECT_PATH][0], SERVICE_INTERFACE_NAME);
   });
   it('should have About data', function() {
     assert.equal(typeof(sessionlessData.aboutData), 'object');
@@ -210,7 +210,7 @@ describe('An AllJoyn about announcement', function() {
     assert.equal(sessionlessData.aboutData['DeviceId'], '93c06771-c725-48c2-b1ff-6a2a59d445b8');
   });
   it('should have a valid model number', function() {
-    assert.equal(sessionlessData.aboutData['ModelNumber'],'123456');
+    assert.equal(sessionlessData.aboutData['ModelNumber'],'0001');
   });
   it('should have a valid hex AppId', function() {
     assert.equal(sessionlessData.aboutData['AppId'][1].toString(16),'b3');
@@ -223,7 +223,7 @@ describe('An AllJoyn about announcement', function() {
   });
   it('should give us a matching Object Description after joining a session', function() {
     assert.equal(Object.prototype.toString.call( sessionfulData.objectDescription[BUS_OBJECT_PATH] ), '[object Array]');
-    assert.equal(sessionfulData.objectDescription[BUS_OBJECT_PATH][0], 'com.example.about.feature.interface.sample');
+    assert.equal(sessionfulData.objectDescription[BUS_OBJECT_PATH][0], SERVICE_INTERFACE_NAME);
   });
   it('should have About data', function() {
     assert.equal(typeof(sessionfulData.aboutData), 'object');
@@ -232,7 +232,7 @@ describe('An AllJoyn about announcement', function() {
     assert.equal(sessionfulData.aboutData['DeviceId'], '93c06771-c725-48c2-b1ff-6a2a59d445b8');
   });
   it('should have a valid model number', function() {
-    assert.equal(sessionfulData.aboutData['ModelNumber'],'123456');
+    assert.equal(sessionfulData.aboutData['ModelNumber'],'0001');
   });
   it('should have a valid hex AppId', function() {
     assert.equal(sessionfulData.aboutData['AppId'][1].toString(16),'b3');
