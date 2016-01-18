@@ -19,53 +19,6 @@ var sessionlessData = {};
 var sessionfulData = {};
 
 
-var setupServiceBusAttachment = function(serviceApplicationName) {
-  serviceBusAttachment = alljoyn.BusAttachment(serviceApplicationName, true);
-  assert.equal(serviceBusAttachment.start(), ALL_GOOD);
-  assert.equal(serviceBusAttachment.connect(), ALL_GOOD);
-  assert.equal(serviceBusAttachment.bindSessionPort(SESSION_PORT, sessionPortListenerCallback), ALL_GOOD);
-  
-  var aboutData = alljoyn.AboutData('en');
-  assert.equal(aboutData.setAppId('01b3ba14-1e82-11e4-8651-d1561d5d46b0'), ALL_GOOD);
-  assert.equal(aboutData.setDeviceName("My Device Name"), ALL_GOOD);
-  assert.equal(aboutData.setDeviceId("93c06771-c725-48c2-b1ff-6a2a59d445b8"), ALL_GOOD);
-  assert.equal(aboutData.setAppName("Application"), ALL_GOOD);
-  assert.equal(aboutData.setManufacturer("Manufacturer"), ALL_GOOD);
-  assert.equal(aboutData.setModelNumber("123456"), ALL_GOOD);
-  assert.equal(aboutData.setDescription("A poetic description of this application"), ALL_GOOD);
-  assert.equal(aboutData.setDateOfManufacture("2014-03-24"), ALL_GOOD);
-  assert.equal(aboutData.setSoftwareVersion("0.1.2"), ALL_GOOD);
-  assert.equal(aboutData.setHardwareVersion("0.0.1"), ALL_GOOD);
-  assert.equal(aboutData.setSupportUrl("http://www.example.org"), ALL_GOOD);
-  assert(aboutData.isValid('en'));
-  
-  var interfaceXML = " \
-  <node> \
-  <interface name='" + SERVICE_INTERFACE_NAME + "'> \
-  <method name='Echo'> \
-  <arg name='out_arg' type='s' direction='in' /> \
-  <arg name='return_arg' type='s' direction='out' /> \
-  </method> \
-  </interface> \
-  </node>";
-
-  assert.equal(serviceBusAttachment.createInterfacesFromXml(interfaceXML), ALL_GOOD);
-  
-  var serviceInterfaceDescription = alljoyn.InterfaceDescription();
-  serviceBusAttachment.getInterface(SERVICE_INTERFACE_NAME, serviceInterfaceDescription);
-  assert.notEqual(serviceInterfaceDescription, null);
-
-  var busObject = alljoyn.BusObject(BUS_OBJECT_PATH);
-
-  busObject.addInterface(serviceInterfaceDescription)
-  assert.equal(serviceBusAttachment.registerBusObject(busObject), ALL_GOOD);
-
-  var aboutObj = alljoyn.AboutObj(serviceBusAttachment);
-  assert.equal(aboutObj.announce(SESSION_PORT, aboutData), ALL_GOOD);
-
-  return serviceBusAttachment;
-}
-
 var setupClientBusAttachment = function(clientApplicationName) {
   // sanity check test suite
   assert.equal(true, true);
@@ -103,17 +56,12 @@ var sessionPortListenerCallback = alljoyn.SessionPortListener(
 describe('An AllJoyn about announcement', function() {
   var aboutListenerWasCalled = false;
   var clientBusAttachment = null;
-  var serviceBusAttachment = null;
   
-  var serviceApplicationName = 'About Plus Service Example';
   var clientApplicationName = 'AboutPlusServiceTest';
   
   before(function(done){
 
     // setup the service Bus Attachment with the Application Name
-    serviceBusAttachment = setupServiceBusAttachment(serviceApplicationName);
-    var serviceBusUniqueName = serviceBusAttachment.getUniqueName();
-    console.log('serviceBusAttachment: ' + util.inspect(serviceBusAttachment));
     // setup the client Bus Attachment with the Application Name
     clientBusAttachment = setupClientBusAttachment(clientApplicationName);
     var clientBusUniqueName = clientBusAttachment.getUniqueName();
@@ -121,10 +69,7 @@ describe('An AllJoyn about announcement', function() {
 
     //TODO: do some assertion testing on the two bus attachments.
     assert.equal(typeof(clientBusUniqueName), 'string');
-    assert.equal(typeof(serviceBusUniqueName), 'string');
     assert.equal(clientBusUniqueName.length, 11);
-    assert.equal(serviceBusUniqueName.length, 11);
-    assert.notEqual(serviceBusUniqueName, clientBusUniqueName);
 
     // create an Announced callback that will get called
     // after the AboutListener is registered and the
