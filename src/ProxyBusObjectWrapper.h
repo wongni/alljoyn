@@ -14,7 +14,8 @@ class ProxyBusObjectWrapper : public node::ObjectWrap {
   private:
 
     static NAN_METHOD(New);
-    static NAN_METHOD(GetInterfaces);
+    static NAN_METHOD(GetInterfaceNames);
+    static NAN_METHOD(GetInterface);
   public:
     ProxyBusObjectWrapper(ajn::BusAttachment* bus, const char *busName, const char *path, ajn::SessionId sessionId);
     ~ProxyBusObjectWrapper();

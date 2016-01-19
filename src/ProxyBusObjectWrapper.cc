@@ -50,7 +50,8 @@ void ProxyBusObjectWrapper::Init () {
   tpl->SetClassName(NanNew<v8::String>("ProxyBusObject"));
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-  NODE_SET_PROTOTYPE_METHOD(tpl, "getInterfaces", ProxyBusObjectWrapper::GetInterfaces);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "getInterfaceNames", ProxyBusObjectWrapper::GetInterfaceNames);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "getInterface", ProxyBusObjectWrapper::GetInterface);
 }
 
 NAN_METHOD(ProxyBusObjectWrapper::New) {
@@ -69,7 +70,7 @@ NAN_METHOD(ProxyBusObjectWrapper::New) {
   NanReturnValue(args.This());
 }
 
-NAN_METHOD(ProxyBusObjectWrapper::GetInterfaces) {
+NAN_METHOD(ProxyBusObjectWrapper::GetInterfaceNames) {
   NanScope();
   ProxyBusObjectWrapper* wrapper = node::ObjectWrap::Unwrap<ProxyBusObjectWrapper>(args.This());
   // QStatus status = wrapper->proxyBusObject->IntrospectRemoteObject();
@@ -84,4 +85,22 @@ NAN_METHOD(ProxyBusObjectWrapper::GetInterfaces) {
     interfaces->Set(i, NanNew<v8::String>(std::string(intfs[i]->GetName())));
   }
   NanReturnValue(interfaces);
+}
+
+NAN_METHOD(ProxyBusObjectWrapper::GetInterface) {
+  NanScope();
+  if (args.Length() == 0 || !args[0]->IsString())
+    return NanThrowError("GetInterface requires a name string argument");
+  if (args.Length() == 1)
+    return NanThrowError("GetInterface requires a new InterfaceDescription argument");
+  
+  char* name = *NanUtf8String(args[0]);
+  ajn::InterfaceDescription* interface = NULL;
+
+  ProxyBusObjectWrapper* proxyBusObjectWrapper = node::ObjectWrap::Unwrap<ProxyBusObjectWrapper>(args.This());
+  interface = const_cast<ajn::InterfaceDescription*>(proxyBusObjectWrapper->proxyBusObject->GetInterface(name));
+  InterfaceWrapper* interfaceWrapper = node::ObjectWrap::Unwrap<InterfaceWrapper>(args[1].As<v8::Object>());
+  interfaceWrapper->interface = interface;
+
+  NanReturnUndefined();
 }

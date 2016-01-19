@@ -29,6 +29,7 @@ void InterfaceWrapper::Init () {
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
   NODE_SET_PROTOTYPE_METHOD(tpl, "addSignal", InterfaceWrapper::AddSignal);
   NODE_SET_PROTOTYPE_METHOD(tpl, "activate", InterfaceWrapper::Activate);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "getMemberNames", InterfaceWrapper::GetMemberNames);
 }
 
 NAN_METHOD(InterfaceWrapper::New) {
@@ -65,4 +66,16 @@ NAN_METHOD(InterfaceWrapper::Activate) {
   NanReturnUndefined();
 }
 
+NAN_METHOD(InterfaceWrapper::GetMemberNames) {
+  NanScope();
+  InterfaceWrapper* wrapper = node::ObjectWrap::Unwrap<InterfaceWrapper>(args.This());
+  size_t member_num = wrapper->interface->GetMembers();
+  const ajn::InterfaceDescription::Member** members = new const ajn::InterfaceDescription::Member*[member_num];
+  wrapper->interface->GetMembers(members, member_num);
 
+  v8::Local<v8::Array> v8members = v8::Array::New(member_num);
+  for (size_t i = 0; i < member_num; ++i) {
+    v8members->Set(i, NanNew<v8::String>(members[i]->name.c_str()));
+  }
+  NanReturnValue(v8members);
+}

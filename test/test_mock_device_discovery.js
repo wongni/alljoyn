@@ -110,18 +110,13 @@ describe('An AllJoyn about announcement', function() {
       var paths = Object.keys(sessionlessData.objectDescription);
       for (i = 0; i < paths.length; i++) {
         var proxyBusObject = alljoyn.ProxyBusObject(clientBusAttachment, busName, paths[i], sessionId);
-        var interfaces = proxyBusObject.getInterfaces();
-        assert.equal(interfaces.length, 4);
-        assert.equal(interfaces[0], 'com.se.bus.discovery');
-        assert.equal(interfaces[1], 'org.allseen.Introspectable');
-        assert.equal(interfaces[2], 'org.freedesktop.DBus.Introspectable');
-        assert.equal(interfaces[3], 'org.freedesktop.DBus.Peer');
-        for (j = 0; j < interfaces.length; j++) {
-          // var members = interfaces[j].getMembers();
-          // for (k = 0; k < members.length; k++) {
-          //   console.log('members[k].memberType: ' + members[k].memberType);
-          // }
-        }
+        var interfaceNames = proxyBusObject.getInterfaceNames();
+        assert.equal(interfaceNames.length, 4);
+        assert.equal(interfaceNames[0], 'com.se.bus.discovery');
+        assert.equal(interfaceNames[1], 'org.allseen.Introspectable');
+        assert.equal(interfaceNames[2], 'org.freedesktop.DBus.Introspectable');
+        assert.equal(interfaceNames[3], 'org.freedesktop.DBus.Peer');
+        var numberOfMembersPerInterface = [36, 2, 1, 2];
       }
 
       // the done function in this callback tells the test framework
