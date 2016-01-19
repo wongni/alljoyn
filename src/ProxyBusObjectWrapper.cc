@@ -80,7 +80,8 @@ NAN_METHOD(ProxyBusObjectWrapper::GetInterfaces) {
   wrapper->proxyBusObject->GetInterfaces(intfs, intf_num);
   v8::Local<v8::Array> interfaces = v8::Array::New(intf_num);
   for (size_t i = 0; i < intf_num; ++i) {
-    interfaces->Set(i, InterfaceWrapper::NewInstance());
+    // interfaces->Set(i, InterfaceWrapper::NewInstance());
+    interfaces->Set(i, NanNew<v8::String>(std::string(intfs[i]->GetName())));
   }
   NanReturnValue(interfaces);
 }
