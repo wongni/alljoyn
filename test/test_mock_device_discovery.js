@@ -106,7 +106,19 @@ describe('An AllJoyn about announcement', function() {
       sessionfulData.version = aboutProxy.getVersion();
       sessionfulData.objectDescription = aboutProxy.getObjectDescription();
       sessionfulData.aboutData = aboutProxy.getAboutData('en');
-  
+
+      var paths = Object.keys(sessionlessData.objectDescription);
+      for (i = 0; i < paths.length; i++) {
+        var proxyBusObject = alljoyn.ProxyBusObject(clientBusAttachment, busName, paths[i], sessionId);
+        var interfaces = proxyBusObject.getInterfaces();
+        for (j = 0; j < interfaces.length; j++) {
+          var members = interfaces[j].getMembers();
+          for (k = 0; k < members.length; k++) {
+            console.log('members[k].memberType: ' + members[k].memberType);
+          }
+        }
+      }
+
       // the done function in this callback tells the test framework
       // that the 'before' work is done and now we can proceed to the tests
       done();
