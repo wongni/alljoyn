@@ -1,6 +1,7 @@
 // for this suite to work, the AllJoyn sample chat app must be running
 // how to run it? after running npm install:
 // > <project_root>/build/Release/sample-chat -s detroit
+// 
 
 // TODO: start, inspect and stop OS process from within the test
  // http://stackoverflow.com/questions/20643470/execute-a-command-line-binary-with-node-js
@@ -27,6 +28,8 @@ describe('Signals on a Connected AllJoyn Session', function() {
   var chatRoomName = 'detroit';
   var advertisedChatRoomName = namePrefix + chatRoomName;
   var busListener = null;
+  var signalHandler = null;
+  var signalHandlerAlreadyCalled = false;
   var foundAdvertisedNameAlreadyCalled = false;
     
   // i wish the before all function weren't so sloppy.
@@ -55,9 +58,8 @@ describe('Signals on a Connected AllJoyn Session', function() {
         if (foundAdvertisedNameAlreadyCalled) {
         } else {
           sessionID = busAttachment.joinSession(name, port, sessionID);
-          busObject.signal(null, sessionID, busInterface, signalName, 'Hello, I am the client!');
+          busObject.signal(null, sessionID, busInterface, signalName, '"Put your hands up 4 Detroit!" -Fedde le Grand, Matthew Dear & Disco D.');
           foundAdvertisedNameAlreadyCalled = true;
-          done();
         }
       },
       function(name){
@@ -67,6 +69,16 @@ describe('Signals on a Connected AllJoyn Session', function() {
         console.log('NameOwnerChanged', name);
       }
     );
+    signalHandler = function(msg, info){
+      console.log('*** Registered Signal Handler: ' + msg[0]);
+      if (signalHandlerAlreadyCalled) {
+      } else {
+        assert.equal(msg['0'],'Our lovely city.');
+        signalHandlerAlreadyCalled = true;
+        done();
+      }
+    };
+
     assert.equal(busAttachment.registerBusListener(busListener), undefined);
     // start the bus attachment
     assert.equal(busAttachment.start(), ALL_GOOD);
@@ -76,9 +88,7 @@ describe('Signals on a Connected AllJoyn Session', function() {
     // add interface
     assert.equal(busObject.addInterface(busInterface), ALL_GOOD);
     // register signal handler
-    assert.equal(busAttachment.registerSignalHandler(busObject, function(msg, info){
-      console.log(msg[0]);
-    }, busInterface, signalName), ALL_GOOD);
+    assert.equal(busAttachment.registerSignalHandler(busObject, signalHandler, busInterface, signalName), ALL_GOOD);
     // register bus object
     assert.equal(busAttachment.registerBusObject(busObject), ALL_GOOD);
     // connect to bus
@@ -94,7 +104,7 @@ describe('Signals on a Connected AllJoyn Session', function() {
   });
 
   it('should send a message', function() {
-    var chatMessage = '"Put your hands up 4 Detroit!" -Fedde le Grand, Matthew Dear & Disco D.';
+    var chatMessage = 'Hello, I am the client!';
     busObject.signal(null, sessionID, busInterface, signalName, chatMessage);
   });
 

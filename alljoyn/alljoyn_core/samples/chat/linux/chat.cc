@@ -119,6 +119,9 @@ class ChatObject : public BusObject {
     void ChatSignalHandler(const InterfaceDescription::Member* member, const char* srcPath, Message& msg)
     {
         printf("%s: %s\n", msg->GetSender(), msg->GetArg(0)->v_string.str);
+        MsgArg chatArg("s", "Our lovely city.");
+        uint8_t flags = 0;
+        Signal(NULL, s_sessionId, *chatSignalMember, &chatArg, 1, 0, flags);
     }
 
   private:
