@@ -14,7 +14,7 @@ class InterfaceWrapper : public node::ObjectWrap {
     static NAN_METHOD(New);
     static NAN_METHOD(AddSignal);
     static NAN_METHOD(Activate);
-    static NAN_METHOD(GetMemberNames);
+    static NAN_METHOD(GetMembers);
   public:
   	InterfaceWrapper();
     ajn::InterfaceDescription* interface;

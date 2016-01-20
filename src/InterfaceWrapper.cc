@@ -29,7 +29,7 @@ void InterfaceWrapper::Init () {
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
   NODE_SET_PROTOTYPE_METHOD(tpl, "addSignal", InterfaceWrapper::AddSignal);
   NODE_SET_PROTOTYPE_METHOD(tpl, "activate", InterfaceWrapper::Activate);
-  NODE_SET_PROTOTYPE_METHOD(tpl, "getMemberNames", InterfaceWrapper::GetMemberNames);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "getMembers", InterfaceWrapper::GetMembers);
 }
 
 NAN_METHOD(InterfaceWrapper::New) {
@@ -66,7 +66,7 @@ NAN_METHOD(InterfaceWrapper::Activate) {
   NanReturnUndefined();
 }
 
-NAN_METHOD(InterfaceWrapper::GetMemberNames) {
+NAN_METHOD(InterfaceWrapper::GetMembers) {
   NanScope();
   InterfaceWrapper* wrapper = node::ObjectWrap::Unwrap<InterfaceWrapper>(args.This());
   size_t member_num = wrapper->interface->GetMembers();
@@ -75,7 +75,18 @@ NAN_METHOD(InterfaceWrapper::GetMemberNames) {
 
   v8::Local<v8::Array> v8members = v8::Array::New(member_num);
   for (size_t i = 0; i < member_num; ++i) {
-    v8members->Set(i, NanNew<v8::String>(members[i]->name.c_str()));
+    v8::Local<v8::Object> v8member = v8::Object::New();
+    
+    v8member->Set(NanNew<v8::String>("memberType"), NanNew<v8::Integer>(static_cast<int>(members[i]->memberType)));
+    v8member->Set(NanNew<v8::String>("name"), NanNew<v8::String>(members[i]->name.c_str()));
+    v8member->Set(NanNew<v8::String>("signature"), NanNew<v8::String>(members[i]->signature.c_str()));
+    v8member->Set(NanNew<v8::String>("returnSignature"), NanNew<v8::String>(members[i]->returnSignature.c_str()));
+    v8member->Set(NanNew<v8::String>("argNames"), NanNew<v8::String>(members[i]->argNames.c_str()));
+    v8member->Set(NanNew<v8::String>("accessPerms"), NanNew<v8::String>(members[i]->accessPerms.c_str()));
+    v8member->Set(NanNew<v8::String>("description"), NanNew<v8::String>(members[i]->description.c_str()));
+    v8member->Set(NanNew<v8::String>("isSessionlessSignal"), NanNew<v8::Boolean>(members[i]->isSessionlessSignal));
+
+    v8members->Set(i, v8member);
   }
   NanReturnValue(v8members);
 }

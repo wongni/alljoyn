@@ -117,6 +117,28 @@ describe('An AllJoyn about announcement', function() {
         assert.equal(interfaceNames[2], 'org.freedesktop.DBus.Introspectable');
         assert.equal(interfaceNames[3], 'org.freedesktop.DBus.Peer');
         var numberOfMembersPerInterface = [36, 2, 1, 2];
+        for (j = 0; j < interfaceNames.length; j++) {
+          var serviceInterfaceDescription = alljoyn.InterfaceDescription();
+          proxyBusObject.getInterface(interfaceNames[j], serviceInterfaceDescription);
+          assert.notEqual(serviceInterfaceDescription, null);
+          
+            // TODO: create getMembers that just returns a v8::Array of v8::Objects
+          var members = serviceInterfaceDescription.getMembers();
+          assert.equal(members.length,numberOfMembersPerInterface[j]);
+          for (k = 0; k < members.length; k++) {
+            var member = members[k];
+            assert.notEqual(member, null);
+            assert.equal(typeof(member.memberType), 'number');
+            assert.equal(typeof(member.name), 'string');
+            assert.equal(typeof(member.signature), 'string');
+            assert.equal(typeof(member.returnSignature), 'string');
+            assert.equal(typeof(member.argNames), 'string');
+            assert.equal(typeof(member.accessPerms), 'string');
+            assert.equal(typeof(member.description), 'string');
+            assert.equal(typeof(member.isSessionlessSignal), 'boolean');
+            assert.equal(Object.keys(member).length,8);
+          }
+        }
       }
 
       // the done function in this callback tells the test framework
