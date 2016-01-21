@@ -292,7 +292,10 @@ NAN_METHOD(BusConnection::RegisterSignalHandler) {
     status = connection->bus->RegisterSignalHandler(signalHandler, static_cast<ajn::MessageReceiver::SignalHandler>(&SignalHandlerImpl::Signal), signalMember, NULL);
   }
 
-  NanReturnValue(NanNew<v8::Integer>(static_cast<int>(status)));
+  if (status == ER_OK)
+    NanReturnValue(NanNew<v8::Integer>(static_cast<int>(status)));
+  else
+    NanReturnValue(NanNew<v8::String>(std::string(QCC_StatusText(status))));
 }
 
 NAN_METHOD(BusConnection::GetConnectSpec){

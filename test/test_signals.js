@@ -19,7 +19,7 @@ describe('Signals on a Connected AllJoyn Session', function() {
   var serviceObjectPath = '/chatService';
   var namePrefix = serviceInterfaceName + '.';
   var applicationName = 'chat';
-  var signalName = 'Chat';
+  var chatSignalName = 'Chat';
   var signalSignature = 's';
   var signalArgumentNames = 'str';
   var signalAnnotation = 0;
@@ -32,8 +32,8 @@ describe('Signals on a Connected AllJoyn Session', function() {
   var chatRoomName = 'detroit';
   var advertisedChatRoomName = namePrefix + chatRoomName;
   var busListener = null;
-  var signalHandler = null;
-  var signalHandlerAlreadyCalled = false;
+  var chatSignalHandler = null;
+  var chatSignalHandlerAlreadyCalled = false;
   var foundAdvertisedNameAlreadyCalled = false;
     
   // i wish the before all function weren't so sloppy.
@@ -54,7 +54,7 @@ describe('Signals on a Connected AllJoyn Session', function() {
     // create the interface on the bus attachment
     assert.equal(busAttachment.createInterface(serviceInterfaceName, busInterface),ALL_GOOD);
     // add a signal
-    assert.equal(busInterface.addSignal(signalName, signalSignature, signalArgumentNames, signalAnnotation), ALL_GOOD);
+    assert.equal(busInterface.addSignal(chatSignalName, signalSignature, signalArgumentNames, signalAnnotation), ALL_GOOD);
     // register a buslistener
     busListener = alljoyn.BusListener(
       function(name){
@@ -62,7 +62,7 @@ describe('Signals on a Connected AllJoyn Session', function() {
         if (foundAdvertisedNameAlreadyCalled) {
         } else {
           sessionID = busAttachment.joinSession(name, port, sessionID);
-          busObject.signal(null, sessionID, busInterface, signalName, '"Put your hands up 4 Detroit!" -Fedde le Grand, Matthew Dear & Disco D.');
+          busObject.signal(null, sessionID, busInterface, chatSignalName, '"Put your hands up 4 Detroit!" -Fedde le Grand, Matthew Dear & Disco D.');
           foundAdvertisedNameAlreadyCalled = true;
         }
       },
@@ -73,9 +73,9 @@ describe('Signals on a Connected AllJoyn Session', function() {
         console.log('NameOwnerChanged', name);
       }
     );
-    signalHandler = function(msg, sender){
+    chatSignalHandler = function(msg, sender){
       console.log('*** Registered Signal Handler: ' + msg[0]);
-      if (signalHandlerAlreadyCalled) {
+      if (chatSignalHandlerAlreadyCalled) {
       } else {
         assert.equal(msg['0'],'Our lovely city.');
         assert.equal(typeof(sender.sender), 'string');
@@ -86,7 +86,7 @@ describe('Signals on a Connected AllJoyn Session', function() {
         assert.equal(sender.objectPath, '/chatService');
         assert.equal(sender.signature, 's');
         
-        signalHandlerAlreadyCalled = true;
+        chatSignalHandlerAlreadyCalled = true;
         done();
       }
     };
@@ -99,8 +99,8 @@ describe('Signals on a Connected AllJoyn Session', function() {
     assert.equal(typeof busObject, 'object');
     // add interface
     assert.equal(busObject.addInterface(busInterface), ALL_GOOD);
-    // register signal handler
-    assert.equal(busAttachment.registerSignalHandler(busObject, signalHandler, busInterface, signalName), ALL_GOOD);
+    // register chat signal handler
+    assert.equal(busAttachment.registerSignalHandler(busObject, chatSignalHandler, busInterface, chatSignalName), ALL_GOOD);
     // register bus object
     assert.equal(busAttachment.registerBusObject(busObject), ALL_GOOD);
     // connect to bus
@@ -117,7 +117,7 @@ describe('Signals on a Connected AllJoyn Session', function() {
 
   it('should send a message', function() {
     var chatMessage = 'Hello, I am the client!';
-    busObject.signal(null, sessionID, busInterface, signalName, chatMessage);
+    busObject.signal(null, sessionID, busInterface, chatSignalName, chatMessage);
   });
 
   it('should return a null connect spec', function(){
