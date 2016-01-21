@@ -122,7 +122,6 @@ describe('An AllJoyn about announcement', function() {
           proxyBusObject.getInterface(interfaceNames[j], serviceInterfaceDescription);
           assert.notEqual(serviceInterfaceDescription, null);
           
-            // TODO: create getMembers that just returns a v8::Array of v8::Objects
           var members = serviceInterfaceDescription.getMembers();
           assert.equal(members.length,numberOfMembersPerInterface[j]);
           for (k = 0; k < members.length; k++) {

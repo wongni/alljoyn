@@ -1,7 +1,11 @@
 // for this suite to work, the AllJoyn sample chat app must be running
 // how to run it? after running npm install:
-// > <project_root>/build/Release/sample-chat -s detroit
+// 1) npm install
+// 2) ./build/Release/sample-chat -s detroit
+// 3) mocha test/test_signals.js -R spec
 // 
+// WARNING: at the moment, you can't run `npm test` or `mocha` for all tests
+// because I haven't figured out to run mulitple AllJoyn services yet.
 
 // TODO: start, inspect and stop OS process from within the test
  // http://stackoverflow.com/questions/20643470/execute-a-command-line-binary-with-node-js
@@ -69,11 +73,19 @@ describe('Signals on a Connected AllJoyn Session', function() {
         console.log('NameOwnerChanged', name);
       }
     );
-    signalHandler = function(msg, info){
+    signalHandler = function(msg, sender){
       console.log('*** Registered Signal Handler: ' + msg[0]);
       if (signalHandlerAlreadyCalled) {
       } else {
         assert.equal(msg['0'],'Our lovely city.');
+        assert.equal(typeof(sender.sender), 'string');
+        assert.equal(sender.sender.length, 11);
+        assert.equal(typeof(sender.sessionId), 'number');
+        assert.equal(typeof(sender.timestamp), 'number');
+        assert.equal(sender.memberName, 'Chat');
+        assert.equal(sender.objectPath, '/chatService');
+        assert.equal(sender.signature, 's');
+        
         signalHandlerAlreadyCalled = true;
         done();
       }
