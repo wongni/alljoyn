@@ -38,6 +38,7 @@ static void CDECL_CALL SigIntHandler(int sig) {
 static SessionPort ASSIGNED_SESSION_PORT = 900;
 static const char* INTERFACE_NAME = "com.se.bus.discovery";
 static const InterfaceDescription::Member * circuitStatusSignal;
+static const InterfaceDescription::Member * heartbeatSignal;
 static SessionId s_sessionId;
 
 class MySessionPortListener : public SessionPortListener {
@@ -109,6 +110,7 @@ public:
     AddMethodHandlers(methodEntries, sizeof(methodEntries) / sizeof(methodEntries[0]));
 
     circuitStatusSignal = iface->GetMember("CircuitStatusChanged");
+    heartbeatSignal = iface->GetMember("Heartbeat");
   }
 
   /** Create the interface, report the result to stdout, and return the result status. */
@@ -144,6 +146,7 @@ public:
   		testIntf->AddMethod("ChangeCredentialsRequest", "ss", "u", "NewUserName,NewPassword,RetStatus", 0);
 
   		testIntf->AddSignal("DeviceStatusChanged", "us", "Branch,DeviceStatus", 0);
+  		testIntf->AddSignal("Heartbeat", "s", "Pulse", 0);
   		testIntf->AddSignal("BreakerTypeChanged", "us", "Branch,BreakerType", 0);
   		testIntf->AddSignal("LastTripChanged", "uss", "Branch,LastTrip,LastTripTime", 0);
   		testIntf->AddSignal("InstantaneousDrawChanged", "uss", "Branch,Amperage,Wattage", 0);
@@ -277,6 +280,14 @@ public:
       printf("Failed to created MethodReply.\n");
     }
   }
+  
+  void SendHeartbeatSignal() {
+    MsgArg signalArg[1];
+    signalArg[0].Set("s", "thump ");
+    uint8_t flags = 0;
+    printf("thump \n");
+    Signal(NULL, s_sessionId, *heartbeatSignal, signalArg, 1, 0, flags);
+  }  
 
   void TurnCircuitOn(const InterfaceDescription::Member* member, Message& msg) {
     QCC_UNUSED(member);
@@ -594,6 +605,7 @@ int CDECL_CALL main(int argc, char** argv)
     /* Perform the service asynchronously until the user signals for an exit. */
     if (ER_OK == status) {
       while (s_interrupt == false) {
+        busObject->SendHeartbeatSignal();
         #ifdef _WIN32
         Sleep(100);
         #else

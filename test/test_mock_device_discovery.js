@@ -57,6 +57,10 @@ describe('An AllJoyn about announcement', function() {
   var aboutListenerWasCalled = false;
   var clientBusAttachment = null;
   
+  var heartbeatSignalHandler = null;
+  var heartbeatSignalHandlerAlreadyCalled = false;
+  var heartbeatSignalName = 'Heartbeat';
+  
   var clientApplicationName = 'AboutPlusServiceTest';
   
   before(function(done){
@@ -116,7 +120,7 @@ describe('An AllJoyn about announcement', function() {
         assert.equal(interfaceNames[1], 'org.allseen.Introspectable');
         assert.equal(interfaceNames[2], 'org.freedesktop.DBus.Introspectable');
         assert.equal(interfaceNames[3], 'org.freedesktop.DBus.Peer');
-        var numberOfMembersPerInterface = [36, 2, 1, 2];
+        var numberOfMembersPerInterface = [37, 2, 1, 2];
         for (j = 0; j < interfaceNames.length; j++) {
           var serviceInterfaceDescription = alljoyn.InterfaceDescription();
           proxyBusObject.getInterface(interfaceNames[j], serviceInterfaceDescription);
@@ -140,9 +144,53 @@ describe('An AllJoyn about announcement', function() {
         }
       }
 
-      // the done function in this callback tells the test framework
-      // that the 'before' work is done and now we can proceed to the tests
-      done();
+      circuitStatusSignalHandler = function(msg, sender){
+        console.log('*** Registered Signal Handler: ' + msg[0]);
+        if (circuitStatusSignalHandlerAlreadyCalled) {
+        } else {
+          assert.equal(msg['0'],'Our lovely city.');
+          assert.equal(typeof(sender.sender), 'string');
+          assert.equal(sender.sender.length, 11);
+          assert.equal(typeof(sender.sessionId), 'number');
+          assert.equal(typeof(sender.timestamp), 'number');
+          assert.equal(sender.memberName, circuitStatusSignalName);
+          assert.equal(sender.objectPath, BUS_OBJECT_PATH);
+          assert.equal(sender.signature, 's');
+        
+          circuitStatusSignalHandlerAlreadyCalled = true;
+          // the done function in this callback tells the test framework
+          // that the 'before' work is done and now we can proceed to the tests
+          // done();
+          done();
+        }
+      };
+
+      heartbeatSignalHandler = function(msg, sender){
+        console.log('*** Registered Signal Handler: ' + msg[0]);
+        if (heartbeatSignalHandlerAlreadyCalled) {
+        } else {
+          assert.equal(msg['0'],'thump ');
+          assert.equal(typeof(sender.sender), 'string');
+          assert.equal(sender.sender.length, 11);
+          assert.equal(typeof(sender.sessionId), 'number');
+          assert.equal(typeof(sender.timestamp), 'number');
+          assert.equal(sender.memberName, heartbeatSignalName);
+          assert.equal(sender.objectPath, BUS_OBJECT_PATH);
+          assert.equal(sender.signature, 's');
+        
+          heartbeatSignalHandlerAlreadyCalled = true;
+          // the done function in this callback tells the test framework
+          // that the 'before' work is done and now we can proceed to the tests
+          // done();
+          done();
+        }
+      };
+
+      // register heartbeat signal handler
+      var busObject = alljoyn.BusObject(BUS_OBJECT_PATH);
+      var busInterface = alljoyn.InterfaceDescription();
+      proxyBusObject.getInterface(interfaceNames[0], busInterface);
+      assert.equal(clientBusAttachment.registerSignalHandler(busObject, heartbeatSignalHandler, busInterface, heartbeatSignalName), ALL_GOOD);
     }
 
     // create a new About Listener
