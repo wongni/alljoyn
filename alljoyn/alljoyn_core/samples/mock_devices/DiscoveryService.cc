@@ -281,11 +281,11 @@ public:
     }
   }
   
-  void SendHeartbeatSignal() {
+  void SendHeartbeatSignal(const char* onomatopoeia) {
     MsgArg signalArg[1];
-    signalArg[0].Set("s", "thump ");
+    signalArg[0].Set("s", onomatopoeia);
     uint8_t flags = 0;
-    printf("thump \n");
+    printf("%s \n", onomatopoeia);
     Signal(NULL, s_sessionId, *heartbeatSignal, signalArg, 1, 0, flags);
   }  
 
@@ -605,11 +605,17 @@ int CDECL_CALL main(int argc, char** argv)
     /* Perform the service asynchronously until the user signals for an exit. */
     if (ER_OK == status) {
       while (s_interrupt == false) {
-        busObject->SendHeartbeatSignal();
+        busObject->SendHeartbeatSignal("ba");
         #ifdef _WIN32
-        Sleep(100);
+        Sleep(500);
         #else
-        usleep(100 * 1000);
+        usleep(500 * 1000);
+        #endif
+        busObject->SendHeartbeatSignal("bump");
+        #ifdef _WIN32
+        Sleep(500);
+        #else
+        usleep(500 * 1000);
         #endif
       }
     }

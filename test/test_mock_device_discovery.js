@@ -169,7 +169,7 @@ describe('An AllJoyn about announcement', function() {
         console.log('*** Registered Signal Handler: ' + msg[0]);
         if (heartbeatSignalHandlerAlreadyCalled) {
         } else {
-          assert.equal(msg['0'],'thump ');
+          assert(/^bump$|^ba$/.test(msg['0']));
           assert.equal(typeof(sender.sender), 'string');
           assert.equal(sender.sender.length, 11);
           assert.equal(typeof(sender.sessionId), 'number');
