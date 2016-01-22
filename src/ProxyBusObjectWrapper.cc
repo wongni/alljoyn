@@ -1,10 +1,12 @@
 #include "nan.h"
 
 #include "InterfaceWrapper.h"
+#include "util.h"
 #include "BusConnection.h"
 #include "ProxyBusObjectWrapper.h"
 #include <alljoyn/InterfaceDescription.h>
 #include <alljoyn/AllJoynStd.h>
+
 
 static v8::Persistent<v8::FunctionTemplate> proxybusobject_constructor;
 
@@ -52,6 +54,7 @@ void ProxyBusObjectWrapper::Init () {
 
   NODE_SET_PROTOTYPE_METHOD(tpl, "getInterfaceNames", ProxyBusObjectWrapper::GetInterfaceNames);
   NODE_SET_PROTOTYPE_METHOD(tpl, "getInterface", ProxyBusObjectWrapper::GetInterface);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "methodCall", ProxyBusObjectWrapper::MethodCall);
 }
 
 NAN_METHOD(ProxyBusObjectWrapper::New) {
@@ -81,7 +84,6 @@ NAN_METHOD(ProxyBusObjectWrapper::GetInterfaceNames) {
   wrapper->proxyBusObject->GetInterfaces(intfs, intf_num);
   v8::Local<v8::Array> interfaces = v8::Array::New(intf_num);
   for (size_t i = 0; i < intf_num; ++i) {
-    // interfaces->Set(i, InterfaceWrapper::NewInstance());
     interfaces->Set(i, NanNew<v8::String>(std::string(intfs[i]->GetName())));
   }
   NanReturnValue(interfaces);
@@ -103,4 +105,29 @@ NAN_METHOD(ProxyBusObjectWrapper::GetInterface) {
   interfaceWrapper->interface = interface;
 
   NanReturnUndefined();
+}
+
+NAN_METHOD(ProxyBusObjectWrapper::MethodCall) {
+  NanScope();
+  if(args.Length() < 4){
+    return NanThrowError("NAN_METHOD(ProxyBusObjectWrapper::MethodCall) MethodCall requires a bus attachment, an interface name, a method name and an array of input arguments.");
+  }
+
+  BusConnection* busWrapper = node::ObjectWrap::Unwrap<BusConnection>(args[0].As<v8::Object>());
+  char* interfaceName = strdup(*NanUtf8String(args[1]));
+  char* methodName = strdup(*NanUtf8String(args[2]));
+  ajn::MsgArg* msgArgs = new ajn::MsgArg("u", args[3]->Uint32Value());
+  ajn::Message replyMsg(*busWrapper->bus);
+
+  // TODO: repalce hardcoded 1 with length of array
+  ProxyBusObjectWrapper* proxyBusObjectWrapper = node::ObjectWrap::Unwrap<ProxyBusObjectWrapper>(args.This());
+  proxyBusObjectWrapper->proxyBusObject->MethodCall(interfaceName, methodName, msgArgs, 1, replyMsg);
+
+  // NanReturnValue(NanNew<v8::Integer>(replyMsg->GetArg(0)->Get("u")));
+  // NanReturnValue(NanNew<v8::String>(replyMsg->GetArg(0)->ToString().c_str()));
+  // uint32_t branchNumber = msg->GetArg(0)->v_uint32;
+  static uint32_t u;
+  replyMsg->GetArg(0)->Get("u", &u);
+  NanReturnValue(NanNew<v8::Integer>(static_cast<int>(u)));
+  // NanReturnUndefined();
 }

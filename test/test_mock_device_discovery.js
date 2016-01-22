@@ -18,6 +18,11 @@ var BUS_OBJECT_PATH = '/example/path'
 var sessionlessData = {};
 var sessionfulData = {};
 
+var MESSAGE_INVALID     = 0; ///< an invalid message type
+var MESSAGE_METHOD_CALL = 1; ///< a method call message type
+var MESSAGE_METHOD_RET  = 2; ///< a method return message type
+var MESSAGE_ERROR       = 3; ///< an error message type
+var MESSAGE_SIGNAL      = 4; ///< a signal message type
 
 var setupClientBusAttachment = function(clientApplicationName) {
   // sanity check test suite
@@ -120,6 +125,14 @@ describe('An AllJoyn about announcement', function() {
         assert.equal(interfaceNames[1], 'org.allseen.Introspectable');
         assert.equal(interfaceNames[2], 'org.freedesktop.DBus.Introspectable');
         assert.equal(interfaceNames[3], 'org.freedesktop.DBus.Peer');
+
+        // C++: status = proxyObject.MethodCall(INTERFACE_NAME, "Echo", &arg, 1, replyMsg);
+        var methodResponse = proxyBusObject.methodCall(clientBusAttachment, interfaceNames[0], 'TurnCircuitOn', 1);
+        assert.equal(typeof(methodResponse), 'number');
+        assert.equal(methodResponse, 1);
+        
+        // assert.equal(methodResponse.CircuitStatus, 'foobar');
+        
         var numberOfMembersPerInterface = [37, 2, 1, 2];
         for (j = 0; j < interfaceNames.length; j++) {
           var serviceInterfaceDescription = alljoyn.InterfaceDescription();
@@ -140,30 +153,24 @@ describe('An AllJoyn about announcement', function() {
             assert.equal(typeof(member.description), 'string');
             assert.equal(typeof(member.isSessionlessSignal), 'boolean');
             assert.equal(Object.keys(member).length,8);
+            if (member.memberType == MESSAGE_METHOD_CALL) {
+              // TODO: translate the C++ below into node.js
+              // https://gist.github.com/landlessness/3b46c957cf4a6f57a5fd
+              // MsgArg arg("s", "ECHO Echo echo...\n");
+              // Message replyMsg(*g_bus);
+              // assert.equal(proxyBusObject.methodCall(interfaceNames[j], member.name, ), ALL_GOOD);
+              // status = proxyObject.MethodCall(INTERFACE_NAME, "Echo", &arg, 1, replyMsg);
+              // if (status != ER_OK) {
+              //     printf("Failed to call Echo method.\n");
+              //     return;
+              // }
+              // char* echoReply;
+              // status = replyMsg->GetArg(0)->Get("s", &echoReply);
+              
+            }
           }
         }
       }
-
-      circuitStatusSignalHandler = function(msg, sender){
-        console.log('*** Registered Signal Handler: ' + msg[0]);
-        if (circuitStatusSignalHandlerAlreadyCalled) {
-        } else {
-          assert.equal(msg['0'],'Our lovely city.');
-          assert.equal(typeof(sender.sender), 'string');
-          assert.equal(sender.sender.length, 11);
-          assert.equal(typeof(sender.sessionId), 'number');
-          assert.equal(typeof(sender.timestamp), 'number');
-          assert.equal(sender.memberName, circuitStatusSignalName);
-          assert.equal(sender.objectPath, BUS_OBJECT_PATH);
-          assert.equal(sender.signature, 's');
-        
-          circuitStatusSignalHandlerAlreadyCalled = true;
-          // the done function in this callback tells the test framework
-          // that the 'before' work is done and now we can proceed to the tests
-          // done();
-          done();
-        }
-      };
 
       heartbeatSignalHandler = function(msg, sender){
         console.log('*** Registered Signal Handler: ' + msg[0]);
