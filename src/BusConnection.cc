@@ -314,7 +314,11 @@ NAN_METHOD(BusConnection::Ping) {
 
   BusConnection* connection = node::ObjectWrap::Unwrap<BusConnection>(args.This());
   QStatus status = connection->bus->Ping(name, args[1]->Int32Value());
-  NanReturnValue(NanNew<v8::Integer>(static_cast<int>(status)));
+
+  if (status == ER_OK)
+    NanReturnValue(NanNew<v8::Integer>(static_cast<int>(status)));
+  else
+    NanReturnValue(NanNew<v8::String>(std::string(QCC_StatusText(status))));
 }
 
 NAN_METHOD(BusConnection::GetUniqueName){
