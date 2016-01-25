@@ -30,6 +30,7 @@ void InterfaceWrapper::Init () {
   NODE_SET_PROTOTYPE_METHOD(tpl, "addSignal", InterfaceWrapper::AddSignal);
   NODE_SET_PROTOTYPE_METHOD(tpl, "activate", InterfaceWrapper::Activate);
   NODE_SET_PROTOTYPE_METHOD(tpl, "getMembers", InterfaceWrapper::GetMembers);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "introspect", InterfaceWrapper::Introspect);
 }
 
 NAN_METHOD(InterfaceWrapper::New) {
@@ -90,3 +91,11 @@ NAN_METHOD(InterfaceWrapper::GetMembers) {
   }
   NanReturnValue(v8members);
 }
+
+NAN_METHOD(InterfaceWrapper::Introspect) {
+  NanScope();
+  InterfaceWrapper* wrapper = node::ObjectWrap::Unwrap<InterfaceWrapper>(args.This());
+  NanReturnValue(NanNew<v8::String>(wrapper->interface->Introspect().c_str()));
+}
+
+

@@ -9,6 +9,7 @@
 var util = require('util');
 var assert = require('assert');
 var alljoyn = require('../');
+var xml = require('xml2json');
 
 var ALL_GOOD = 0;
 var SESSION_PORT = 900;
@@ -41,6 +42,7 @@ var setupClientBusAttachment = function(clientApplicationName) {
 
   // connect to bus
   assert.equal(clientBusAttachment.connect(), ALL_GOOD);
+  
   return clientBusAttachment;
 }
 
@@ -57,6 +59,10 @@ var sessionPortListenerCallback = alljoyn.SessionPortListener(
     console.log("SessionJoined", port, sessionId, joiner);
   }
 );
+
+var argumentsForSignature = function(signature) {
+  [1];
+}
 
 describe('An AllJoyn about announcement', function() {
   var aboutListenerWasCalled = false;
@@ -126,11 +132,11 @@ describe('An AllJoyn about announcement', function() {
         assert.equal(interfaceNames[2], 'org.freedesktop.DBus.Introspectable');
         assert.equal(interfaceNames[3], 'org.freedesktop.DBus.Peer');
 
-        // C++: status = proxyObject.MethodCall(INTERFACE_NAME, "Echo", &arg, 1, replyMsg);
         var methodResponse = proxyBusObject.methodCall(clientBusAttachment, interfaceNames[0], 'TurnCircuitOn', 1);
         assert.equal(typeof(methodResponse), 'number');
         assert.equal(methodResponse, 1);
-        
+
+        // TODO: handle output args
         // assert.equal(methodResponse.CircuitStatus, 'foobar');
         
         var numberOfMembersPerInterface = [37, 2, 1, 2];
@@ -138,7 +144,31 @@ describe('An AllJoyn about announcement', function() {
           var serviceInterfaceDescription = alljoyn.InterfaceDescription();
           proxyBusObject.getInterface(interfaceNames[j], serviceInterfaceDescription);
           assert.notEqual(serviceInterfaceDescription, null);
-          
+          var description = xml.toJson(serviceInterfaceDescription.introspect(), {object: true});
+          for (m = 0; m < description.interface.method.length; m++) {
+            var method = description.interface.method[m];
+            assert.equal(typeof(method.name), 'string');
+            assert(method.name.length > 0);
+            if ('arg' in method) {
+              if ('length' in method.arg) {
+                for (a = 0; a < method.arg.length; a++) {
+                  var arg = method.arg[a];
+                  assert.equal(typeof(arg.name), 'string');
+                  assert(arg.name.length > 0);
+                  assert.equal(typeof(arg.type), 'string');
+                  assert(arg.type.length > 0);
+                  assert(/^in$|^out$/.test(arg.direction));
+                }
+              } else {
+                var arg = method.arg;
+                assert.equal(typeof(arg.name), 'string');
+                assert(arg.name.length > 0);
+                assert.equal(typeof(arg.type), 'string');
+                assert(arg.type.length > 0);
+                assert(/^in$|^out$/.test(arg.direction));
+              }
+            }
+          }
           var members = serviceInterfaceDescription.getMembers();
           assert.equal(members.length,numberOfMembersPerInterface[j]);
           for (k = 0; k < members.length; k++) {
@@ -154,12 +184,18 @@ describe('An AllJoyn about announcement', function() {
             assert.equal(typeof(member.isSessionlessSignal), 'boolean');
             assert.equal(Object.keys(member).length,8);
             if (member.memberType == MESSAGE_METHOD_CALL) {
+              
+              
               // TODO: translate the C++ below into node.js
               // https://gist.github.com/landlessness/3b46c957cf4a6f57a5fd
               // MsgArg arg("s", "ECHO Echo echo...\n");
               // Message replyMsg(*g_bus);
               // assert.equal(proxyBusObject.methodCall(interfaceNames[j], member.name, ), ALL_GOOD);
               // status = proxyObject.MethodCall(INTERFACE_NAME, "Echo", &arg, 1, replyMsg);
+              // console.log('interfaceNames[j]: ' + interfaceNames[j] + '  member.name: ' + member.name + ' signature: ' + member.signature);
+              // var methodResponse = proxyBusObject.methodCall(clientBusAttachment, interfaceNames[j], member.name, argumentsForSignature(member.signature));
+              // assert.equal(typeof(methodResponse), 'number');
+              // assert.equal(methodResponse, 1);
               // if (status != ER_OK) {
               //     printf("Failed to call Echo method.\n");
               //     return;
@@ -186,9 +222,6 @@ describe('An AllJoyn about announcement', function() {
           assert.equal(sender.signature, 's');
         
           heartbeatSignalHandlerAlreadyCalled = true;
-          // the done function in this callback tells the test framework
-          // that the 'before' work is done and now we can proceed to the tests
-          // done();
           done();
         }
       };

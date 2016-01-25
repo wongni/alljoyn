@@ -112,6 +112,8 @@ NAN_METHOD(ProxyBusObjectWrapper::MethodCall) {
   if(args.Length() < 4){
     return NanThrowError("NAN_METHOD(ProxyBusObjectWrapper::MethodCall) MethodCall requires a bus attachment, an interface name, a method name and an array of input arguments.");
   }
+  
+  printf("interfaceName: %s  methodName: %s", strdup(*NanUtf8String(args[1])), strdup(*NanUtf8String(args[2])));
 
   BusConnection* busWrapper = node::ObjectWrap::Unwrap<BusConnection>(args[0].As<v8::Object>());
   char* interfaceName = strdup(*NanUtf8String(args[1]));
