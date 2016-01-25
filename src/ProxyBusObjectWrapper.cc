@@ -124,10 +124,34 @@ NAN_METHOD(ProxyBusObjectWrapper::MethodCall) {
   printf("v8Arguments->Get(1): %s\n", strArg);
 
   ajn::MsgArg* msgArgs = new ajn::MsgArg[v8Arguments->Length()];
-  ajn::MsgArg* firstArg = new ajn::MsgArg("u", v8Arguments->Get(0)->Uint32Value());
-  msgArgs[0].Set("*", firstArg);
-  ajn::MsgArg* secondArg = new ajn::MsgArg("s", strArg);
-  msgArgs[1].Set("*", secondArg);
+  for (size_t i = 0; i < v8Arguments->Length(); ++i) {
+    v8::Local<v8::Object> v8Argument = v8::Local<v8::Object>::Cast(v8Arguments->Get(i));
+    v8::Local<v8::Value> argValue = v8Argument->Get(NanNew<v8::String>("value"));
+    char* argSignature = *NanUtf8String(v8Argument->Get(NanNew<v8::String>("signature")));
+
+    printf("v8Argument.signature: %s\n", argSignature);
+    ajn::MsgArg* ajnArg = new ajn::MsgArg(argSignature);
+    switch(ajnArg->typeId){
+      case ajn::ALLJOYN_STRING:
+      printf("ajn::ALLJOYN_STRING\n");
+      printf("ajnArg->Set Status: %s\n", QCC_StatusText(ajnArg->Set("s", strdup(*NanUtf8String(argValue)))));
+      printf("value: %s\n", strdup(*NanUtf8String(argValue)));
+      char *tempStr;
+      printf("ajnArg->Get Status: %s\n", QCC_StatusText(ajnArg->Get("s", &tempStr)));
+      printf("ajnArg->Get: %s\n", tempStr);
+      break;
+      case ajn::ALLJOYN_UINT32:
+      printf("ajn::ALLJOYN_UINT32\n");
+      ajnArg->Set("u", argValue->Uint32Value());
+      printf("value: %u\n", argValue->Uint32Value());
+      break;
+      default:
+      printf("UNDEFINED\n");
+      printf("NAN_METHOD(ProxyBusObjectWrapper::MethodCall) - Unhandled type: %s\n", argSignature);
+      break;
+    }
+    msgArgs[i].Set("*", ajnArg);
+  }
 
   ajn::Message replyMsg(*busWrapper->bus);
 
