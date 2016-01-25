@@ -120,8 +120,6 @@ NAN_METHOD(ProxyBusObjectWrapper::MethodCall) {
   char* methodName = strdup(*NanUtf8String(args[2]));
   v8::Local<v8::Array> v8Arguments = v8::Local<v8::Array>::Cast(args[3]);
   printf("v8Arguments->Length(): %d\n", v8Arguments->Length());
-  char* strArg = strdup(*NanUtf8String(v8Arguments->Get(1)));
-  printf("v8Arguments->Get(1): %s\n", strArg);
 
   ajn::MsgArg* msgArgs = new ajn::MsgArg[v8Arguments->Length()];
   for (size_t i = 0; i < v8Arguments->Length(); ++i) {
