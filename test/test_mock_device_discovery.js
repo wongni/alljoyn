@@ -131,8 +131,9 @@ describe('An AllJoyn about announcement', function() {
         assert.equal(interfaceNames[1], 'org.allseen.Introspectable');
         assert.equal(interfaceNames[2], 'org.freedesktop.DBus.Introspectable');
         assert.equal(interfaceNames[3], 'org.freedesktop.DBus.Peer');
-        // var methodResponse = proxyBusObject.methodCall(clientBusAttachment, interfaceNames[0], 'WriteBranchName', [1,'dishwasher']);
-        var methodResponse = proxyBusObject.methodCall(clientBusAttachment, interfaceNames[0], 'TurnCircuitOn', [1]);
+        var methodResponse = proxyBusObject.methodCall(clientBusAttachment, interfaceNames[0], 'WriteBranchName', [1,'dishwasher']);
+        // var methodResponse = proxyBusObject.methodCall(clientBusAttachment, interfaceNames[0], 'TurnCircuitOn', [1]);
+        console.log('methodResponse: ' + methodResponse);
         assert.equal(typeof(methodResponse), 'number');
         assert.equal(methodResponse, 1);
         

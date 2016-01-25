@@ -124,39 +124,28 @@ NAN_METHOD(ProxyBusObjectWrapper::MethodCall) {
   printf("v8Arguments->Get(1): %s\n", strArg);
 
   ajn::MsgArg* msgArgs = new ajn::MsgArg[v8Arguments->Length()];
-  // // ajn::MsgArg* msgArgs = new ajn::MsgArg[1];
-  // // ajn::MsgArg* msgArgs = new ajn::MsgArg[2];
   ajn::MsgArg* firstArg = new ajn::MsgArg("u", v8Arguments->Get(0)->Uint32Value());
-  // // ajn::MsgArg* firstArg = new ajn::MsgArg("u", args[3]->Uint32Value());
-  msgArgs->Set("*", firstArg);
-  // ajn::MsgArg* secondArg = new ajn::MsgArg("s", strArg);
-  // msgArgs->Set("*", secondArg);
-  //
-  // // ajn::MsgArg* msgArgs = new ajn::MsgArg("u", args[3]->Uint32Value());
+  msgArgs[0].Set("*", firstArg);
+  ajn::MsgArg* secondArg = new ajn::MsgArg("s", strArg);
+  msgArgs[1].Set("*", secondArg);
+
   ajn::Message replyMsg(*busWrapper->bus);
-  //
-  // // TODO: repalce hardcoded 1 with length of array
+
   ProxyBusObjectWrapper* proxyBusObjectWrapper = node::ObjectWrap::Unwrap<ProxyBusObjectWrapper>(args.This());
   QStatus status = proxyBusObjectWrapper->proxyBusObject->MethodCall(interfaceName, methodName, msgArgs, v8Arguments->Length(), replyMsg);
 
-  // // uint32_t branchNumber = msg->GetArg(0)->v_uint32;
-  // static uint32_t u;
-  // replyMsg->GetArg(0)->Get("u", &u);
-  // static char* strReply;
-  // replyMsg->GetArgs("s", &strReply);
-  // replyMsg->GetArg(0)->Get("s", &strReply);
-  
-  // printf("strReply: %s", strReply);
-  // printf("strReply: %s", replyMsg->GetArg(0)->v_string.str);
   size_t numArgs;
   const ajn::MsgArg* replyArgs;
   replyMsg->GetArgs(numArgs, replyArgs);
   printf("numArgs: %zd\n", numArgs);
-  printf("replyArgs[0].ToString(): %s\n", replyArgs[0].ToString().c_str());
   if (status == ER_OK)
-    NanReturnValue(NanNew<v8::Integer>(static_cast<int>(replyArgs[0].v_uint32)));
-    // NanReturnValue(NanNew<v8::String>(strReply));
-    // NanReturnUndefined();
+    if (numArgs == 0) {
+      NanReturnUndefined();
+    } else {
+      printf("replyArgs[0].ToString(): %s\n", replyArgs[0].ToString().c_str());
+    // NanReturnValue(NanNew<v8::Integer>(static_cast<int>(replyArgs[0].v_uint32)));
+      NanReturnValue(NanNew<v8::String>(replyArgs[0].ToString().c_str()));
+    }
   else
     NanReturnValue(NanNew<v8::String>(std::string(QCC_StatusText(status))));
 
