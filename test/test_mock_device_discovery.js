@@ -131,13 +131,10 @@ describe('An AllJoyn about announcement', function() {
         assert.equal(interfaceNames[1], 'org.allseen.Introspectable');
         assert.equal(interfaceNames[2], 'org.freedesktop.DBus.Introspectable');
         assert.equal(interfaceNames[3], 'org.freedesktop.DBus.Peer');
-
-        var methodResponse = proxyBusObject.methodCall(clientBusAttachment, interfaceNames[0], 'TurnCircuitOn', 1);
+        // var methodResponse = proxyBusObject.methodCall(clientBusAttachment, interfaceNames[0], 'WriteBranchName', [1,'dishwasher']);
+        var methodResponse = proxyBusObject.methodCall(clientBusAttachment, interfaceNames[0], 'TurnCircuitOn', [1]);
         assert.equal(typeof(methodResponse), 'number');
         assert.equal(methodResponse, 1);
-
-        // TODO: handle output args
-        // assert.equal(methodResponse.CircuitStatus, 'foobar');
         
         var numberOfMembersPerInterface = [37, 2, 1, 2];
         for (j = 0; j < interfaceNames.length; j++) {
@@ -149,25 +146,28 @@ describe('An AllJoyn about announcement', function() {
             var method = description.interface.method[m];
             assert.equal(typeof(method.name), 'string');
             assert(method.name.length > 0);
+            validateArg = function(arg) {
+              assert.equal(typeof(arg.name), 'string');
+              assert(arg.name.length > 0);
+              assert.equal(typeof(arg.type), 'string');
+              assert(arg.type.length > 0);
+              assert(/^in$|^out$/.test(arg.direction));
+            };
             if ('arg' in method) {
               if ('length' in method.arg) {
                 for (a = 0; a < method.arg.length; a++) {
                   var arg = method.arg[a];
-                  assert.equal(typeof(arg.name), 'string');
-                  assert(arg.name.length > 0);
-                  assert.equal(typeof(arg.type), 'string');
-                  assert(arg.type.length > 0);
-                  assert(/^in$|^out$/.test(arg.direction));
+                  validateArg(arg);
                 }
               } else {
                 var arg = method.arg;
-                assert.equal(typeof(arg.name), 'string');
-                assert(arg.name.length > 0);
-                assert.equal(typeof(arg.type), 'string');
-                assert(arg.type.length > 0);
-                assert(/^in$|^out$/.test(arg.direction));
+                validateArg(arg);
               }
             }
+            // var methodResponse = proxyBusObject.methodCall(clientBusAttachment, interfaceNames[j], method.name, 1);
+
+            // TODO: handle output args
+            // assert.equal(methodResponse.CircuitStatus, 'foobar');
           }
           var members = serviceInterfaceDescription.getMembers();
           assert.equal(members.length,numberOfMembersPerInterface[j]);
@@ -184,25 +184,6 @@ describe('An AllJoyn about announcement', function() {
             assert.equal(typeof(member.isSessionlessSignal), 'boolean');
             assert.equal(Object.keys(member).length,8);
             if (member.memberType == MESSAGE_METHOD_CALL) {
-              
-              
-              // TODO: translate the C++ below into node.js
-              // https://gist.github.com/landlessness/3b46c957cf4a6f57a5fd
-              // MsgArg arg("s", "ECHO Echo echo...\n");
-              // Message replyMsg(*g_bus);
-              // assert.equal(proxyBusObject.methodCall(interfaceNames[j], member.name, ), ALL_GOOD);
-              // status = proxyObject.MethodCall(INTERFACE_NAME, "Echo", &arg, 1, replyMsg);
-              // console.log('interfaceNames[j]: ' + interfaceNames[j] + '  member.name: ' + member.name + ' signature: ' + member.signature);
-              // var methodResponse = proxyBusObject.methodCall(clientBusAttachment, interfaceNames[j], member.name, argumentsForSignature(member.signature));
-              // assert.equal(typeof(methodResponse), 'number');
-              // assert.equal(methodResponse, 1);
-              // if (status != ER_OK) {
-              //     printf("Failed to call Echo method.\n");
-              //     return;
-              // }
-              // char* echoReply;
-              // status = replyMsg->GetArg(0)->Get("s", &echoReply);
-              
             }
           }
         }
