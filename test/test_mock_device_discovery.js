@@ -141,7 +141,7 @@ describe('An AllJoyn about announcement', function() {
             var method = description.interface.method[m];
             assert.equal(typeof(method.name), 'string');
             assert(method.name.length > 0);
-            validateArg = function(arg) {
+            validateInArg = function(arg) {
               assert.equal(typeof(arg.name), 'string');
               assert(arg.name.length > 0);
               assert.equal(typeof(arg.type), 'string');
@@ -159,33 +159,41 @@ describe('An AllJoyn about announcement', function() {
                 console.log('testValueForType = unknown type: ' + argType)
               }
             }
+            validateOutArg =function(actual, expected) {
+              //TODO: change MethodCall to return Array then do assertions here.
+            }
+            
             if ('arg' in method) {
               if (method.name == 'ReadRemoteControlState') {
                 debugger;
               }
               var inArgs = [];
+              var outArgs = [];
               if ('length' in method.arg) {
                 for (a = 0; a < method.arg.length; a++) {
                   var arg = method.arg[a];
                   if (/^in$/.test(arg.direction)) {
-                    validateArg(arg);
+                    validateInArg(arg);
                     inArgs.push({signature: arg.type, value: testValueForType(arg.type)});
+                  } else if (/^out$/.test(arg.direction)) {
+                    outArgs.push({signature: arg.type, name: arg.name});
                   }
                 }
               } else {
                 var arg = method.arg;
                 if (/^in$/.test(arg.direction)) {
-                  validateArg(arg);
+                  validateInArg(arg);
                   inArgs.push({signature: arg.type, value: testValueForType(arg.type)});
+                } else if (/^out$/.test(arg.direction)) {
+                  outArgs.push({signature: arg.type, name: arg.name});
                 }
               }
-              var methodResponse = proxyBusObject.methodCall(clientBusAttachment, interfaceNames[j], method.name, inArgs);
-              console.log('methodResponse: ' + methodResponse);
-              // TODO: make some assertions
+              var methodResponse = proxyBusObject.methodCall(clientBusAttachment, interfaceNames[j], method.name, inArgs, outArgs);
+              assert.equal(typeof(methodResponse), 'object');
+              var keys = Object.keys(methodResponse);
+              console.log('methodResponse: ' + util.inspect(methodResponse));
+              validateOutArg(methodResponse, outArgs);
             }
-            
-            // TODO: handle output args
-            // assert.equal(methodResponse.CircuitStatus, 'foobar');
           }
           var members = serviceInterfaceDescription.getMembers();
           assert.equal(members.length,numberOfMembersPerInterface[j]);

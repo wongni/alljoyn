@@ -109,7 +109,7 @@ NAN_METHOD(ProxyBusObjectWrapper::GetInterface) {
 
 NAN_METHOD(ProxyBusObjectWrapper::MethodCall) {
   NanScope();
-  if(args.Length() < 4  || !args[3]->IsArray()){
+  if(args.Length() < 5  || !args[3]->IsArray() || !args[4]->IsArray()){
     return NanThrowError("NAN_METHOD(ProxyBusObjectWrapper::MethodCall) MethodCall requires a bus attachment, an interface name, a method name and an array of input arguments.");
   }
   
@@ -118,16 +118,18 @@ NAN_METHOD(ProxyBusObjectWrapper::MethodCall) {
   BusConnection* busWrapper = node::ObjectWrap::Unwrap<BusConnection>(args[0].As<v8::Object>());
   char* interfaceName = strdup(*NanUtf8String(args[1]));
   char* methodName = strdup(*NanUtf8String(args[2]));
-  v8::Local<v8::Array> v8Arguments = v8::Local<v8::Array>::Cast(args[3]);
-  printf("v8Arguments->Length(): %d\n", v8Arguments->Length());
+  v8::Local<v8::Array> v8InArguments = v8::Local<v8::Array>::Cast(args[3]);
+  printf("v8InArguments->Length(): %d\n", v8InArguments->Length());
+  v8::Local<v8::Array> v8OutArguments = v8::Local<v8::Array>::Cast(args[4]);
+  printf("v8OutArguments->Length(): %d\n", v8OutArguments->Length());
 
-  ajn::MsgArg* msgArgs = new ajn::MsgArg[v8Arguments->Length()];
-  for (size_t i = 0; i < v8Arguments->Length(); ++i) {
-    v8::Local<v8::Object> v8Argument = v8::Local<v8::Object>::Cast(v8Arguments->Get(i));
-    v8::Local<v8::Value> argValue = v8Argument->Get(NanNew<v8::String>("value"));
-    char* argSignature = *NanUtf8String(v8Argument->Get(NanNew<v8::String>("signature")));
+  ajn::MsgArg* msgArgs = new ajn::MsgArg[v8InArguments->Length()];
+  for (size_t i = 0; i < v8InArguments->Length(); ++i) {
+    v8::Local<v8::Object> v8InArgument = v8::Local<v8::Object>::Cast(v8InArguments->Get(i));
+    v8::Local<v8::Value> argValue = v8InArgument->Get(NanNew<v8::String>("value"));
+    char* argSignature = *NanUtf8String(v8InArgument->Get(NanNew<v8::String>("signature")));
 
-    printf("v8Argument.signature: %s\n", argSignature);
+    printf("v8InArgument.signature: %s\n", argSignature);
     ajn::MsgArg* ajnArg = new ajn::MsgArg(argSignature);
     switch(ajnArg->typeId){
       case ajn::ALLJOYN_STRING:
@@ -154,21 +156,43 @@ NAN_METHOD(ProxyBusObjectWrapper::MethodCall) {
   ajn::Message replyMsg(*busWrapper->bus);
 
   ProxyBusObjectWrapper* proxyBusObjectWrapper = node::ObjectWrap::Unwrap<ProxyBusObjectWrapper>(args.This());
-  QStatus status = proxyBusObjectWrapper->proxyBusObject->MethodCall(interfaceName, methodName, msgArgs, v8Arguments->Length(), replyMsg);
+  QStatus status = proxyBusObjectWrapper->proxyBusObject->MethodCall(interfaceName, methodName, msgArgs, v8InArguments->Length(), replyMsg);
 
   size_t numArgs;
   const ajn::MsgArg* replyArgs;
-  replyMsg->GetArgs(numArgs, replyArgs);
-  printf("numArgs: %zd\n", numArgs);
-  if (status == ER_OK)
+
+  if (status == ER_OK) {
+    replyMsg->GetArgs(numArgs, replyArgs);
+    printf("numArgs: %zd\n", numArgs);
     if (numArgs == 0) {
       NanReturnUndefined();
     } else {
-      printf("replyArgs[0].ToString(): %s\n", replyArgs[0].ToString().c_str());
-    // NanReturnValue(NanNew<v8::Integer>(static_cast<int>(replyArgs[0].v_uint32)));
-      NanReturnValue(NanNew<v8::String>(replyArgs[0].ToString().c_str()));
+      v8::Local<v8::Object> v8ReplyObj = v8::Object::New();
+      for (size_t i = 0; i < numArgs; i++) {
+        printf("replyArgs[i] %s\n", replyArgs[i].ToString().c_str());
+        // TODO: should return an array
+        v8::Local<v8::Object> v8OutArgument = v8::Local<v8::Object>::Cast(v8OutArguments->Get(i));
+        v8::Local<v8::Value> outArgName = v8OutArgument->Get(NanNew<v8::String>("name"));
+        
+        // v8ReplyObj->Set(outArgName, NanNew<v8::String>(std::string("foo")));
+        switch(replyArgs[i].typeId){
+          case ajn::ALLJOYN_STRING:
+          printf("v8ReplyObj->Set %s\n", replyArgs[i].v_string.str);
+          v8ReplyObj->Set(outArgName, NanNew<v8::String>(replyArgs[i].v_string.str));
+          break;
+          case ajn::ALLJOYN_UINT32:
+          v8ReplyObj->Set(outArgName, NanNew<v8::Integer>(replyArgs[i].v_uint32));
+          break;
+          default:
+          printf("UNDEFINED\n");
+          printf("NAN_METHOD(ProxyBusObjectWrapper::MethodCall) - Unhandled type: %d\n", replyArgs[i].typeId);
+          break;
+        }
+        
+      }
+      NanReturnValue(v8ReplyObj);
     }
-  else
+  } else {
     NanReturnValue(NanNew<v8::String>(std::string(QCC_StatusText(status))));
-
+  }
 }
