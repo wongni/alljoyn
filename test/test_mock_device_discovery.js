@@ -132,13 +132,39 @@ describe('An AllJoyn about announcement', function() {
         assert.equal(interfaceNames[2], 'org.freedesktop.DBus.Introspectable');
         assert.equal(interfaceNames[3], 'org.freedesktop.DBus.Peer');
         var numberOfMembersPerInterface = [37, 2, 1, 2];
+        var numberOfSignalsPerInterface = [30, 0, 0, 0];
+        var numberOfMethodsPerInterface = [19, 2, 0, 1];
         for (j = 0; j < interfaceNames.length; j++) {
+          var methodCallCount = 0;
           var serviceInterfaceDescription = alljoyn.InterfaceDescription();
           proxyBusObject.getInterface(interfaceNames[j], serviceInterfaceDescription);
           assert.notEqual(serviceInterfaceDescription, null);
           var description = xml.toJson(serviceInterfaceDescription.introspect(), {object: true});
-          for (m = 0; m < description.interface.method.length; m++) {
-            var method = description.interface.method[m];
+          // test signals
+          var signals = ('signal' in description.interface) ? description.interface.signal : [];
+          var signalOutArgs = [];
+          for (s = 0; s < signals.length; s++) {
+            var signal = signals[s];
+            assert.equal(typeof(signal.name), 'string');
+            assert(signal.name.length > 0);
+            if ('arg' in signal) {
+              var args = ('length' in signal.arg) ? signal.arg : [signal.arg];
+              for (a = 0; a < args.length; a++) {
+                var arg = args[a];
+                assert(/^out$/.test(arg.direction));
+                assert.equal(typeof(arg.type), 'string');
+                signalOutArgs.push({signature: arg.type, value: arg.value});
+              }
+            }
+          }
+          assert.equal(signalOutArgs.length,numberOfSignalsPerInterface[j]);
+
+          // test methods
+          var methods = ('method' in description.interface) ? description.interface.method : [];
+          debugger;
+          for (m = 0; m < methods.length; m++) {
+            debugger;
+            var method = methods[m];
             assert.equal(typeof(method.name), 'string');
             assert(method.name.length > 0);
             validateInArg = function(arg) {
@@ -164,23 +190,11 @@ describe('An AllJoyn about announcement', function() {
             }
             
             if ('arg' in method) {
-              if (method.name == 'ReadRemoteControlState') {
-                debugger;
-              }
               var inArgs = [];
               var outArgs = [];
-              if ('length' in method.arg) {
-                for (a = 0; a < method.arg.length; a++) {
-                  var arg = method.arg[a];
-                  if (/^in$/.test(arg.direction)) {
-                    validateInArg(arg);
-                    inArgs.push({signature: arg.type, value: testValueForType(arg.type)});
-                  } else if (/^out$/.test(arg.direction)) {
-                    outArgs.push({signature: arg.type, name: arg.name});
-                  }
-                }
-              } else {
-                var arg = method.arg;
+              var args = ('length' in method.arg) ? method.arg : [method.arg];
+              for (a = 0; a < args.length; a++) {
+                var arg = args[a];
                 if (/^in$/.test(arg.direction)) {
                   validateInArg(arg);
                   inArgs.push({signature: arg.type, value: testValueForType(arg.type)});
@@ -188,6 +202,7 @@ describe('An AllJoyn about announcement', function() {
                   outArgs.push({signature: arg.type, name: arg.name});
                 }
               }
+              methodCallCount++; 
               var methodResponse = proxyBusObject.methodCall(clientBusAttachment, interfaceNames[j], method.name, inArgs, outArgs);
               assert.equal(typeof(methodResponse), 'object');
               var keys = Object.keys(methodResponse);
@@ -195,6 +210,8 @@ describe('An AllJoyn about announcement', function() {
               validateOutArg(methodResponse, outArgs);
             }
           }
+          console.log('interfaceName: ' + interfaceNames[j]);
+          assert.equal(methodCallCount, numberOfMethodsPerInterface[j]);
           var members = serviceInterfaceDescription.getMembers();
           assert.equal(members.length,numberOfMembersPerInterface[j]);
           for (k = 0; k < members.length; k++) {
