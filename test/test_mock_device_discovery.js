@@ -161,9 +161,7 @@ describe('An AllJoyn about announcement', function() {
 
           // test methods
           var methods = ('method' in description.interface) ? description.interface.method : [];
-          debugger;
           for (m = 0; m < methods.length; m++) {
-            debugger;
             var method = methods[m];
             assert.equal(typeof(method.name), 'string');
             assert(method.name.length > 0);
@@ -185,10 +183,15 @@ describe('An AllJoyn about announcement', function() {
                 console.log('testValueForType = unknown type: ' + argType)
               }
             }
-            validateOutArg =function(actual, expected) {
+            validateOutArg =function(actual, expected, methodName) {
+              if ('GetDescriptionLanguages' == method.name) {return;}
               //TODO: change MethodCall to return Array then do assertions here.
+              var keys = Object.keys(actual);
+              for (k = 0; k < keys.length; k++) {
+                assert.equal(keys[k], expected[k].name);
+              }
+              assert.equal(Object.keys(actual).length,outArgs.length);
             }
-            
             if ('arg' in method) {
               var inArgs = [];
               var outArgs = [];
@@ -207,7 +210,7 @@ describe('An AllJoyn about announcement', function() {
               assert.equal(typeof(methodResponse), 'object');
               var keys = Object.keys(methodResponse);
               console.log('methodResponse: ' + util.inspect(methodResponse));
-              validateOutArg(methodResponse, outArgs);
+              validateOutArg(methodResponse, outArgs, method.name);
             }
           }
           console.log('interfaceName: ' + interfaceNames[j]);
