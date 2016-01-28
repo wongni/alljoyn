@@ -96,7 +96,8 @@ NAN_METHOD(ProxyBusObjectWrapper::GetInterface) {
   if (args.Length() == 1)
     return NanThrowError("GetInterface requires a new InterfaceDescription argument");
   
-  char* name = *NanUtf8String(args[0]);
+  char* name = strdup(*NanUtf8String(args[0]));
+
   ajn::InterfaceDescription* interface = NULL;
 
   ProxyBusObjectWrapper* proxyBusObjectWrapper = node::ObjectWrap::Unwrap<ProxyBusObjectWrapper>(args.This());
@@ -127,7 +128,7 @@ NAN_METHOD(ProxyBusObjectWrapper::MethodCall) {
   for (size_t i = 0; i < v8InArguments->Length(); ++i) {
     v8::Local<v8::Object> v8InArgument = v8::Local<v8::Object>::Cast(v8InArguments->Get(i));
     v8::Local<v8::Value> argValue = v8InArgument->Get(NanNew<v8::String>("value"));
-    char* argSignature = *NanUtf8String(v8InArgument->Get(NanNew<v8::String>("signature")));
+    char* argSignature = strdup(*NanUtf8String(v8InArgument->Get(NanNew<v8::String>("signature"))));
 
     printf("v8InArgument.signature: %s\n", argSignature);
     ajn::MsgArg* ajnArg = new ajn::MsgArg(argSignature);

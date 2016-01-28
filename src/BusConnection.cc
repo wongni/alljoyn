@@ -148,7 +148,7 @@ NAN_METHOD(BusConnection::GetInterface) {
   if (args.Length() == 1)
     return NanThrowError("GetInterface requires a new InterfaceDescription argument");
   
-  char* name = *NanUtf8String(args[0]);
+  char* name = strdup(*NanUtf8String(args[0]));
   ajn::InterfaceDescription* interface = NULL;
 
   BusConnection* connection = node::ObjectWrap::Unwrap<BusConnection>(args.This());

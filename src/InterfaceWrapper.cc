@@ -94,6 +94,7 @@ NAN_METHOD(InterfaceWrapper::GetMembers) {
 
 NAN_METHOD(InterfaceWrapper::Introspect) {
   NanScope();
+  
   InterfaceWrapper* wrapper = node::ObjectWrap::Unwrap<InterfaceWrapper>(args.This());
   NanReturnValue(NanNew<v8::String>(wrapper->interface->Introspect().c_str()));
 }
