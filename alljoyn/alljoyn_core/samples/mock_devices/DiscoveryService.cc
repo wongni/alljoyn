@@ -123,26 +123,49 @@ public:
   	if (status == ER_OK) {
   		printf("Interface created.\n");
   		testIntf->AddMethod("ReadDeviceStatus", "u", "s", "Branch,DeviceStatus", 0);
+  		testIntf->AddMemberAnnotation("ReadDeviceStatus", "IsStatusMethod", "true");
   		testIntf->AddMethod("ReadBreakerType", "u", "s", "Branch,BreakerType", 0);
+  		testIntf->AddMemberAnnotation("ReadBreakerType", "IsStatusMethod", "true");
   		testIntf->AddMethod("ReadLastTrip", "u", "ss", "Branch,LastTrip,LastTripTime", 0);
+  		testIntf->AddMemberAnnotation("ReadLastTrip", "IsStatusMethod", "true");
   		testIntf->AddMethod("ReadInstantaneousDraw", "u", "ss", "Branch,Amperage,Wattage", 0);
+  		testIntf->AddMemberAnnotation("ReadInstantaneousDraw", "IsStatusMethod", "true");
   		testIntf->AddMethod("ReadEnergyDelivered", "u", "s", "Branch,EnergyDelivered", 0);
+  		testIntf->AddMemberAnnotation("ReadEnergyDelivered", "IsStatusMethod", "true");
   		testIntf->AddMethod("ReadCircuitLoad", "u", "s", "Branch,CircuitLoad", 0);
+  		testIntf->AddMemberAnnotation("ReadCircuitLoad", "IsStatusMethod", "true");
   		testIntf->AddMethod("TurnCircuitOn", "u", "u", "Branch,CircuitStatus", 0);
+  		testIntf->AddMemberAnnotation("TurnCircuitOn", "IsStatusMethod", "false");
+  		testIntf->AddMemberAnnotation("TurnCircuitOn", "ChangesPhysicalWorld", "true");
+
+      // INTENTIONALLY NOT ADDING ANNOTATIONS to TurnCircuitOff 
+      // in order to test the undefined case
   		testIntf->AddMethod("TurnCircuitOff", "u", "u", "Branch,CircuitStatus", 0);
+      // ...
+      // INTENTIONALLY NOT ADDING ANNOTATIONS to TurnCircuitOff
+
   		testIntf->AddMethod("ReadCircuitStatus", "u", "s", "Branch,CircuitStatus", 0);
+  		testIntf->AddMemberAnnotation("ReadCircuitStatus", "IsStatusMethod", "true");
   		testIntf->AddMethod("ReadBranchName", "u", "s", "Branch,BranchName", 0);
+  		testIntf->AddMemberAnnotation("ReadBranchName", "IsStatusMethod", "true");
   		testIntf->AddMethod("WriteBranchName", "us", "s", "Branch,BranchName_In,BranchName_Out", 0);
   		//testIntf->AddMethod("DownloadPanelConfig", NULL, "u", "Status", 0);
   		testIntf->AddMethod("ReadCloudStatus", NULL, "u", "CloudStatus", 0);
+  		testIntf->AddMemberAnnotation("ReadCloudStatus", "IsStatusMethod", "true");
   		testIntf->AddMethod("ReadPoleNumber", "u", "s", "Branch,PoleNumber", 0);
+  		testIntf->AddMemberAnnotation("ReadPoleNumber", "IsStatusMethod", "true");
   		testIntf->AddMethod("ReadBreakerCommStatus", "u", "s", "Branch,BreakerCommStatus", 0);
+  		testIntf->AddMemberAnnotation("ReadBreakerCommStatus", "IsStatusMethod", "true");
   		//testIntf->AddMethod("ReadHarvesterTime", NULL, "x", "HarvesterTime", 0);
   		testIntf->AddMethod("ReadHarvesterInstalled", NULL, "s", "HarvesterInstalled", 0);
+  		testIntf->AddMemberAnnotation("ReadHarvesterInstalled", "IsStatusMethod", "true");
   		testIntf->AddMethod("ReadHarvesterConnType", NULL, "s", "HarvesterConnType", 0);
+  		testIntf->AddMemberAnnotation("ReadHarvesterConnType", "IsStatusMethod", "true");
   		//testIntf->AddMethod("ReadHarvesterPowerState", NULL, "s", "HarvesterPowerState", 0);
   		testIntf->AddMethod("ReadRemoteControlState", NULL, "s", "RemoteControlState", 0);
+  		testIntf->AddMemberAnnotation("ReadRemoteControlState", "IsStatusMethod", "true");
   		testIntf->AddMethod("ReadUSBStatus", NULL, "s", "USBStatus", 0);
+  		testIntf->AddMemberAnnotation("ReadUSBStatus", "IsStatusMethod", "true");
   		testIntf->AddMethod("ChangeCredentialsRequest", "ss", "u", "NewUserName,NewPassword,RetStatus", 0);
 
   		testIntf->AddSignal("DeviceStatusChanged", "us", "Branch,DeviceStatus", 0);

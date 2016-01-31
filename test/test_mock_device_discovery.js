@@ -8,6 +8,9 @@
 
 require('./test_helper');
 
+global.BUS_OBJECT_PATH = '/example/path'
+global.SERVICE_INTERFACE_NAME = 'com.se.bus.discovery';
+
 describe('An AllJoyn about announcement', function() {
     it('should call AboutListener after whoImplements is called', function() {
     assert.equal(aboutListenerWasCalled, true);

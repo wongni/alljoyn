@@ -7,10 +7,6 @@ global.clientBusAttachment = null;
 global.sessionlessData = {};
 global.sessionfulData = {};
 
-global.BUS_OBJECT_PATH = '/example/path'
-
-global.SERVICE_INTERFACE_NAME = 'com.se.bus.discovery';
-
 // setup
 var alljoyn = require('../');
 var xml = require('xml2json');
@@ -117,11 +113,14 @@ before(function(done){
     sessionfulData.version = aboutProxy.getVersion();
     sessionfulData.objectDescription = aboutProxy.getObjectDescription();
     sessionfulData.aboutData = aboutProxy.getAboutData('en');
+    sessionfulData.interfaceNamesForPath = {};    
 
     var paths = Object.keys(sessionlessData.objectDescription);
     for (i = 0; i < paths.length; i++) {
       var proxyBusObject = alljoyn.ProxyBusObject(clientBusAttachment, busName, paths[i], sessionId);
       var interfaceNames = proxyBusObject.getInterfaceNames();
+      sessionfulData.interfaceNamesForPath[paths[i]] = {descriptionForInterfaceName: {}};
+      
       assert.equal(interfaceNames.length, 4);
       assert.equal(interfaceNames[0], 'com.se.bus.discovery');
       assert.equal(interfaceNames[1], 'org.allseen.Introspectable');
@@ -136,6 +135,8 @@ before(function(done){
         proxyBusObject.getInterface(interfaceNames[j], serviceInterfaceDescription);
         assert.notEqual(serviceInterfaceDescription, null);
         var description = xml.toJson(serviceInterfaceDescription.introspect(), {object: true});
+        sessionfulData.interfaceNamesForPath[paths[i]].descriptionForInterfaceName[interfaceNames[j]] = {descriptionFromXML: description, alljoynInterfaceDescription: serviceInterfaceDescription};
+
         // test signals
         var signals = ('signal' in description.interface) ? description.interface.signal : [];
         var signalOutArgs = [];
