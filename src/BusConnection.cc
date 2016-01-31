@@ -135,7 +135,7 @@ NAN_METHOD(BusConnection::CreateInterface) {
   if (ER_OK == status) {
     //callback
   } else {
-      printf("Failed to create interface \"%s\" (%s)\n", name, QCC_StatusText(status));
+    // TODO: handle exception
   }
 
   NanReturnValue(NanNew<v8::Integer>(static_cast<int>(status)));
