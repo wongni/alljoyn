@@ -424,6 +424,42 @@
         'alljoyn/alljoyn_core/samples/mock_devices/DiscoveryService.cc',
         'alljoyn/alljoyn_core/router/bundled/BundledRouter.cc'
       ]
+    },
+    {
+      'target_name': 'sample-mock-device-discovery-logon',
+      'type': 'executable',
+      'dependencies': [
+        'alljoyn',
+        'ajrouter'
+      ],
+      'sources': [
+        'alljoyn/alljoyn_core/samples/mock_devices/DiscoveryServiceLogon.cc',
+        'alljoyn/alljoyn_core/router/bundled/BundledRouter.cc'
+      ]
+    },
+    {
+      'target_name': 'sample-mock-device-discovery-pin',
+      'type': 'executable',
+      'dependencies': [
+        'alljoyn',
+        'ajrouter'
+      ],
+      'sources': [
+        'alljoyn/alljoyn_core/samples/mock_devices/DiscoveryServicePin.cc',
+        'alljoyn/alljoyn_core/router/bundled/BundledRouter.cc'
+      ]
+    },
+    {
+      'target_name': 'sample-mock-device-discovery-client-security',
+      'type': 'executable',
+      'dependencies': [
+        'alljoyn',
+        'ajrouter'
+      ],
+      'sources': [
+        'alljoyn/alljoyn_core/samples/mock_devices/DiscoveryClientSecurity.cc',
+        'alljoyn/alljoyn_core/router/bundled/BundledRouter.cc'
+      ]
     }
   ]
 }
