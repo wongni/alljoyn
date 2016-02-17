@@ -5,34 +5,25 @@
 #include <alljoyn/InterfaceDescription.h>
 #include <alljoyn/AllJoynStd.h>
 
-static v8::Persistent<v8::FunctionTemplate> aboutproxy_constructor;
-
-v8::Handle<v8::Value> AboutProxyWrapper::NewInstance() {
-    NanScope();
-
-    v8::Local<v8::Object> obj;
-    v8::Local<v8::FunctionTemplate> con = NanNew<v8::FunctionTemplate>(aboutproxy_constructor);
-    obj = con->GetFunction()->NewInstance(0, NULL);
-    return obj;
-}
+static Nan::Persistent<v8::FunctionTemplate> aboutproxy_constructor;
 
 NAN_METHOD(AboutProxyConstructor) {
-  NanScope();
-  
-  if(args.Length() < 2){
-    return NanThrowError("NAN_METHOD(AboutProxyConstructor) AboutProxy requires busAttachment and busName. sessionId is optional.");
-  }
-  
-  v8::Local<v8::Object> obj;
-  v8::Local<v8::FunctionTemplate> con = NanNew<v8::FunctionTemplate>(aboutproxy_constructor);
 
-  v8::Handle<v8::Value> argv[] = {
-    args[0],
-    args[1],
-    args[2]
+
+  if(info.Length() < 2){
+    return Nan::ThrowError("NAN_METHOD(AboutProxyConstructor) AboutProxy requires busAttachment and busName. sessionId is optional.");
+  }
+
+  v8::Local<v8::Object> obj;
+  v8::Local<v8::FunctionTemplate> con = Nan::New<v8::FunctionTemplate>(aboutproxy_constructor);
+
+  v8::Local<v8::Value> argv[] = {
+    info[0],
+    info[1],
+    info[2]
   };
   obj = con->GetFunction()->NewInstance(3, argv);
-  NanReturnValue(obj);
+  info.GetReturnValue().Set(obj);
 }
 
 AboutProxyWrapper::AboutProxyWrapper(ajn::BusAttachment* busAttachment, const char* busName, ajn::SessionId sessionId)
@@ -43,72 +34,72 @@ AboutProxyWrapper::~AboutProxyWrapper(){
 }
 
 void AboutProxyWrapper::Init () {
-  v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(AboutProxyWrapper::New);
-  NanAssignPersistent(aboutproxy_constructor, tpl);
-  tpl->SetClassName(NanNew<v8::String>("AboutProxy"));
+  v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(AboutProxyWrapper::New);
+  aboutproxy_constructor.Reset(tpl);
+  tpl->SetClassName(Nan::New<v8::String>("AboutProxy").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-  NODE_SET_PROTOTYPE_METHOD(tpl, "getObjectDescription", AboutProxyWrapper::GetObjectDescription);
-  NODE_SET_PROTOTYPE_METHOD(tpl, "getAboutData", AboutProxyWrapper::GetAboutData);
-  NODE_SET_PROTOTYPE_METHOD(tpl, "getSessionId", AboutProxyWrapper::GetSessionId);
-  NODE_SET_PROTOTYPE_METHOD(tpl, "getUniqueName", AboutProxyWrapper::GetUniqueName);
-  NODE_SET_PROTOTYPE_METHOD(tpl, "getVersion", AboutProxyWrapper::GetVersion);
+  Nan::SetPrototypeMethod(tpl, "getObjectDescription", AboutProxyWrapper::GetObjectDescription);
+  Nan::SetPrototypeMethod(tpl, "getAboutData", AboutProxyWrapper::GetAboutData);
+  Nan::SetPrototypeMethod(tpl, "getSessionId", AboutProxyWrapper::GetSessionId);
+  Nan::SetPrototypeMethod(tpl, "getUniqueName", AboutProxyWrapper::GetUniqueName);
+  Nan::SetPrototypeMethod(tpl, "getVersion", AboutProxyWrapper::GetVersion);
 }
 
 NAN_METHOD(AboutProxyWrapper::New) {
-  NanScope();
-  if(args.Length() < 2){
-    return NanThrowError("NAN_METHOD(AboutProxyWrapper::New) AboutProxy requires a BusAttachment and a busName. Session ID is optional.");
+
+  if(info.Length() < 2){
+    return Nan::ThrowError("NAN_METHOD(AboutProxyWrapper::New) AboutProxy requires a BusAttachment and a busName. Session ID is optional.");
   }
 
-  BusConnection* busWrapper = node::ObjectWrap::Unwrap<BusConnection>(args[0].As<v8::Object>());
+  BusConnection* busWrapper = node::ObjectWrap::Unwrap<BusConnection>(info[0].As<v8::Object>());
 
-  char* busName = strdup(*NanUtf8String(args[1]));
-  
-  AboutProxyWrapper* obj = new AboutProxyWrapper(busWrapper->bus, busName, args[2]->Int32Value());
-  obj->Wrap(args.This());
+  char* busName = strdup(*Nan::Utf8String(info[1]));
 
-  NanReturnValue(args.This());
+  AboutProxyWrapper* obj = new AboutProxyWrapper(busWrapper->bus, busName, info[2]->Int32Value());
+  obj->Wrap(info.This());
+
+  info.GetReturnValue().Set(info.This());
 }
 
 NAN_METHOD(AboutProxyWrapper::GetSessionId) {
-  NanScope();
-  AboutProxyWrapper* wrapper = node::ObjectWrap::Unwrap<AboutProxyWrapper>(args.This());
+
+  AboutProxyWrapper* wrapper = node::ObjectWrap::Unwrap<AboutProxyWrapper>(info.This());
   ajn::SessionId sessionId = wrapper->proxy->GetSessionId();
-  NanReturnValue(NanNew<v8::Integer>(static_cast<int>(sessionId)));
+  info.GetReturnValue().Set(Nan::New<v8::Integer>(static_cast<int>(sessionId)));
 }
 
 NAN_METHOD(AboutProxyWrapper::GetUniqueName) {
-  NanScope();
-  AboutProxyWrapper* wrapper = node::ObjectWrap::Unwrap<AboutProxyWrapper>(args.This());
+
+  AboutProxyWrapper* wrapper = node::ObjectWrap::Unwrap<AboutProxyWrapper>(info.This());
   qcc::String uniqueName = wrapper->proxy->GetUniqueName();
-  NanReturnValue(NanNew<v8::String>(uniqueName.c_str()));
+  info.GetReturnValue().Set(Nan::New<v8::String>(uniqueName.c_str()).ToLocalChecked());
 }
 
 NAN_METHOD(AboutProxyWrapper::GetVersion) {
-  NanScope();
-  AboutProxyWrapper* wrapper = node::ObjectWrap::Unwrap<AboutProxyWrapper>(args.This());
+
+  AboutProxyWrapper* wrapper = node::ObjectWrap::Unwrap<AboutProxyWrapper>(info.This());
 
   uint16_t ver;
   QStatus status = wrapper->proxy->GetVersion(ver);
   if (status == ER_OK)
-    NanReturnValue(NanNew<v8::Integer>(static_cast<int>(ver)));
+    info.GetReturnValue().Set(Nan::New<v8::Integer>(static_cast<int>(ver)));
   else
-    NanReturnValue(NanNew<v8::String>(std::string(QCC_StatusText(status))));
+    info.GetReturnValue().Set(Nan::New<v8::String>(std::string(QCC_StatusText(status))).ToLocalChecked());
 }
 
 NAN_METHOD(AboutProxyWrapper::GetObjectDescription) {
-  NanScope();
-  
-  AboutProxyWrapper* wrapper = node::ObjectWrap::Unwrap<AboutProxyWrapper>(args.This());
+
+
+  AboutProxyWrapper* wrapper = node::ObjectWrap::Unwrap<AboutProxyWrapper>(info.This());
   ajn::MsgArg objectDescriptionArg;
   QStatus status = wrapper->proxy->GetObjectDescription(objectDescriptionArg);
-  
-  // this objectDescription will head back to Node.js after we 
-  // populate it using the AllJoyn helper methods
-  v8::Local<v8::Object> objectDescription = v8::Object::New();
 
-  // use the AllJoyn helper methods to get the data out of 
+  // this objectDescription will head back to Node.js after we
+  // populate it using the AllJoyn helper methods
+  v8::Local<v8::Object> objectDescription = Nan::New<v8::Object>();
+
+  // use the AllJoyn helper methods to get the data out of
   // the AllJoyn ObjectDescription and into the Node.js object
   ajn::AboutObjectDescription ajnObjectDescription;
   ajnObjectDescription.CreateFromMsgArg(objectDescriptionArg);
@@ -122,37 +113,37 @@ NAN_METHOD(AboutProxyWrapper::GetObjectDescription) {
     aod.GetInterfaces(paths[i], intfs, intf_num);
     v8::Local<v8::Array> interfaceNames = v8::Array::New(intf_num);
     for (size_t j = 0; j < intf_num; ++j) {
-      interfaceNames->Set(j, NanNew<v8::String>(intfs[j]));
+      Nan::Set(interfaceNames, j, Nan::New<v8::String>(intfs[j]).ToLocalChecked());
     }
-    objectDescription->Set(NanNew<v8::String>(paths[i]), interfaceNames);
+    Nan::Set(objectDescription, Nan::New<v8::String>(paths[i]).ToLocalChecked(), interfaceNames);
     delete [] intfs;
   }
-  
+
   if (status == ER_OK)
-    NanReturnValue(objectDescription);
+    info.GetReturnValue().Set(objectDescription);
   else
-    NanReturnValue(NanNew<v8::String>(std::string(QCC_StatusText(status))));
+    info.GetReturnValue().Set(Nan::New<v8::String>(std::string(QCC_StatusText(status))).ToLocalChecked());
 }
 
 
 NAN_METHOD(AboutProxyWrapper::GetAboutData) {
-  NanScope();
-  
-  if(args.Length() < 1){
-    return NanThrowError("NAN_METHOD(AboutProxyWrapper::GetAboutData) GetAboutData requires a language tag.");
+
+
+  if(info.Length() < 1){
+    return Nan::ThrowError("NAN_METHOD(AboutProxyWrapper::GetAboutData) GetAboutData requires a language tag.");
   }
 
-  char* languageTag = strdup(*NanUtf8String(args[0]));
+  char* languageTag = strdup(*Nan::Utf8String(info[0]));
 
-  AboutProxyWrapper* wrapper = node::ObjectWrap::Unwrap<AboutProxyWrapper>(args.This());
+  AboutProxyWrapper* wrapper = node::ObjectWrap::Unwrap<AboutProxyWrapper>(info.This());
   ajn::MsgArg aboutDataArg;
   QStatus status = wrapper->proxy->GetAboutData(languageTag, aboutDataArg);
-  
-  // this aboutData object will head back to Node.js after we 
+
+  // this aboutData object will head back to Node.js after we
   // populate it using the AllJoyn helper methods
   // const ajn::MsgArg* aboutDataArgIn = holder->aboutDataArg;
   // msgArgToObject(aboutDataArgIn, 0, aboutDataArgOut);
-  v8::Local<v8::Object> aboutData = v8::Object::New();
+  v8::Local<v8::Object> aboutData = Nan::New<v8::Object>();
   ajn::AboutData ajnAboutData(aboutDataArg);
   size_t count = ajnAboutData.GetFields();
   const char** fields = new const char*[count];
@@ -164,16 +155,16 @@ NAN_METHOD(AboutProxyWrapper::GetAboutData) {
     if (tmp->Signature() == "s") {
       const char* tmp_s;
       tmp->Get("s", &tmp_s);
-      aboutData->Set(NanNew<v8::String>(fields[i]), NanNew<v8::String>(tmp_s));
+      Nan::Set(aboutData, Nan::New<v8::String>(fields[i]).ToLocalChecked(), Nan::New<v8::String>(tmp_s).ToLocalChecked());
     } else if (tmp->Signature() == "ay") {
       size_t lay;
       uint8_t* pay;
       tmp->Get("ay", &lay, &pay);
       v8::Local<v8::Array> v8_pay = v8::Array::New(lay);
       for (size_t j = 0; j < lay; ++j) {
-        v8_pay->Set(j, NanNew<v8::Integer>(pay[j]));
+        Nan::Set(v8_pay, j, Nan::New<v8::Integer>(pay[j]));
       }
-      aboutData->Set(NanNew<v8::String>(fields[i]), v8_pay);
+      Nan::Set(aboutData, Nan::New<v8::String>(fields[i]).ToLocalChecked(), v8_pay);
     } else if (tmp->Signature() == "as") {
       // TODO: need to write a test to hit this block
       // it is only called after a session is created
@@ -184,15 +175,15 @@ NAN_METHOD(AboutProxyWrapper::GetAboutData) {
       for (size_t j = 0; j < las; ++j) {
         const char* tmp_s;
         as_arg[j].Get("s", &tmp_s);
-        v8_las->Set(j, NanNew<v8::String>(tmp_s));
+        Nan::Set(v8_las, j, Nan::New<v8::String>(tmp_s).ToLocalChecked());
       }
-      aboutData->Set(NanNew<v8::String>(fields[i]), v8_las);
+      Nan::Set(aboutData, Nan::New<v8::String>(fields[i]).ToLocalChecked(), v8_las);
     }
   }
   delete [] fields;
 
   if (status == ER_OK)
-    NanReturnValue(aboutData);
+    info.GetReturnValue().Set(aboutData);
   else
-    NanReturnValue(NanNew<v8::String>(std::string(QCC_StatusText(status))));
+    info.GetReturnValue().Set(Nan::New<v8::String>(std::string(QCC_StatusText(status))).ToLocalChecked());
 }

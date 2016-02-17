@@ -48,7 +48,7 @@ var setupClientBusAttachment = function(clientApplicationName) {
 
   // connect to bus
   assert.equal(clientBusAttachment.connect(), ALL_GOOD);
-  
+
   return clientBusAttachment;
 }
 
@@ -90,7 +90,7 @@ before(function(done){
     sessionlessData.objectDescription = objectDescription;
     sessionlessData.aboutData = aboutData;
 
-    // once the Announced callback has fired let's go ahead and 
+    // once the Announced callback has fired let's go ahead and
     // join the session and get more About info
     var sessionId = 0;
 
@@ -113,14 +113,14 @@ before(function(done){
     sessionfulData.version = aboutProxy.getVersion();
     sessionfulData.objectDescription = aboutProxy.getObjectDescription();
     sessionfulData.aboutData = aboutProxy.getAboutData('en');
-    sessionfulData.interfaceNamesForPath = {};    
+    sessionfulData.interfaceNamesForPath = {};
 
     var paths = Object.keys(sessionlessData.objectDescription);
     for (i = 0; i < paths.length; i++) {
       var proxyBusObject = alljoyn.ProxyBusObject(clientBusAttachment, busName, paths[i], sessionId);
       var interfaceNames = proxyBusObject.getInterfaceNames();
       sessionfulData.interfaceNamesForPath[paths[i]] = {descriptionForInterfaceName: {}};
-      
+
       assert.equal(interfaceNames.length, 4);
       assert.equal(interfaceNames[0], 'com.se.bus.discovery');
       assert.equal(interfaceNames[1], 'org.allseen.Introspectable');
@@ -200,7 +200,7 @@ before(function(done){
                 outArgs.push({signature: arg.type, name: arg.name});
               }
             }
-            methodCallCount++; 
+            methodCallCount++;
             var methodResponse = proxyBusObject.methodCall(clientBusAttachment, interfaceNames[j], method.name, inArgs, outArgs);
             assert.equal(typeof(methodResponse), 'object');
             var keys = Object.keys(methodResponse);
@@ -239,7 +239,7 @@ before(function(done){
         assert.equal(sender.memberName, heartbeatSignalName);
         assert.equal(sender.objectPath, BUS_OBJECT_PATH);
         assert.equal(sender.signature, 's');
-      
+
         heartbeatSignalHandlerAlreadyCalled = true;
         done();
       }
@@ -257,10 +257,9 @@ before(function(done){
 
   //register the About Listener with the Announced Callback
   assert.equal(clientBusAttachment.registerAboutListener(aboutListener), undefined);
-  
-  // call WhoImplements on the service interface name 
+
+  // call WhoImplements on the service interface name
   // to trigger the Announced Callback
   assert.equal(clientBusAttachment.whoImplements([SERVICE_INTERFACE_NAME]), ALL_GOOD);
-  
-});
 
+});

@@ -5,35 +5,26 @@
 #include <alljoyn/InterfaceDescription.h>
 #include <alljoyn/AllJoynStd.h>
 
-static v8::Persistent<v8::FunctionTemplate> authlistener_constructor;
-
-v8::Handle<v8::Value> AuthListenerWrapper::NewInstance() {
-    NanScope();
-
-    v8::Local<v8::Object> obj;
-    v8::Local<v8::FunctionTemplate> con = NanNew<v8::FunctionTemplate>(authlistener_constructor);
-    obj = con->GetFunction()->NewInstance(0, NULL);
-    return obj;
-}
+static Nan::Persistent<v8::FunctionTemplate> authlistener_constructor;
 
 NAN_METHOD(AuthListenerConstructor) {
-  NanScope();
 
-  if(args.Length() < 1){
-    return NanThrowError("NAN_METHOD(AuthListenerConstructor) AuthListener requires a callback for Announced(busName, version, port, objectDescriptionArg, authDataArg).");
+
+  if(info.Length() < 1){
+    return Nan::ThrowError("NAN_METHOD(AuthListenerConstructor) AuthListener requires a callback for Announced(busName, version, port, objectDescriptionArg, authDataArg).");
   }
 
   v8::Local<v8::Object> obj;
-  v8::Local<v8::FunctionTemplate> con = NanNew<v8::FunctionTemplate>(authlistener_constructor);
+  v8::Local<v8::FunctionTemplate> con = Nan::New<v8::FunctionTemplate>(authlistener_constructor);
 
-  v8::Handle<v8::Value> argv[] = {
-    args[0]
+  v8::Local<v8::Value> argv[] = {
+    info[0], info[1]
   };
-  obj = con->GetFunction()->NewInstance(1, argv);
-  NanReturnValue(obj);
+  obj = con->GetFunction()->NewInstance(2, argv);
+  info.GetReturnValue().Set(obj);
 }
 
-AuthListenerWrapper::AuthListenerWrapper(NanCallback* requestCredentials, NanCallback* authenticationComplete)
+AuthListenerWrapper::AuthListenerWrapper(Nan::Callback* requestCredentials, Nan::Callback* authenticationComplete)
   :listener(new AuthListenerImpl(requestCredentials, authenticationComplete)){
 }
 
@@ -41,24 +32,24 @@ AuthListenerWrapper::~AuthListenerWrapper(){
 }
 
 void AuthListenerWrapper::Init () {
-  v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(AuthListenerWrapper::New);
-  NanAssignPersistent(authlistener_constructor, tpl);
-  tpl->SetClassName(NanNew<v8::String>("AuthListener"));
+  v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(AuthListenerWrapper::New);
+  authlistener_constructor.Reset(tpl);
+  tpl->SetClassName(Nan::New<v8::String>("AuthListener").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 }
 
 NAN_METHOD(AuthListenerWrapper::New) {
-  NanScope();
-  if(args.Length() < 1){
-    return NanThrowError("NAN_METHOD(AuthListenerWrapper::New) AuthListener requires a callback for RequestCredentials(const char* authMechanism, const char* authPeer, uint16_t authCount, const char* userId, uint16_t credMask, Credentials& creds) and AuthenticationComplete(const char* authMechanism, const char* authPeer, bool success).");
+
+  if(info.Length() < 2){
+    return Nan::ThrowError("NAN_METHOD(AuthListenerWrapper::New) AuthListener requires callbacks for RequestCredentials and AuthenticationComplete.");
   }
-  v8::Local<v8::Function> requestCredentials = args[0].As<v8::Function>();
-  NanCallback *requestCredentialsCall = new NanCallback(requestCredentials);
-  v8::Local<v8::Function> authenticationComplete = args[1].As<v8::Function>();
-  NanCallback *authenticationCompleteCall = new NanCallback(authenticationComplete);
+  v8::Local<v8::Function> requestCredentials = info[0].As<v8::Function>();
+  Nan::Callback *requestCredentialsCall = new Nan::Callback(requestCredentials);
+  v8::Local<v8::Function> authenticationComplete = info[1].As<v8::Function>();
+  Nan::Callback *authenticationCompleteCall = new Nan::Callback(authenticationComplete);
 
   AuthListenerWrapper* obj = new AuthListenerWrapper(requestCredentialsCall, authenticationCompleteCall);
-  obj->Wrap(args.This());
+  obj->Wrap(info.This());
 
-  NanReturnValue(args.This());
+  info.GetReturnValue().Set(info.This());
 }

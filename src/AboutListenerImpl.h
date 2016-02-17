@@ -15,7 +15,7 @@ private:
   uv_rwlock_t calllock;
 
   struct CallbackHolder{
-    NanCallback* callback;
+    Nan::Callback* callback;
     const char* busName;
     int version;
     int port;
@@ -24,7 +24,7 @@ private:
   } announced;
 
 public:
-  AboutListenerImpl(NanCallback* announced);
+  AboutListenerImpl(Nan::Callback* announced);
   ~AboutListenerImpl();
   static void announced_callback(uv_async_t *handle, int status);
 

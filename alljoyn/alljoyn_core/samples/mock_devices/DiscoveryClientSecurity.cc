@@ -319,7 +319,7 @@ QStatus EnableSecurity(void)
      * isShared parameter is being set to true. So this keystore file can
      * be used by multiple applications.
      */
-    QStatus status = g_bus->EnablePeerSecurity("ALLJOYN_SRP_LOGON ALLJOYN_SRP_KEYX", new MyAuthListener(), "/.alljoyn_keystore/central.ks", true);
+    QStatus status = g_bus->EnablePeerSecurity("ALLJOYN_SRP_LOGON ALLJOYN_SRP_KEYX", new MyAuthListener(), "./test_client.ks", true);
 
     if (ER_OK == status) {
         printf("BusAttachment::EnablePeerSecurity successful.\n");

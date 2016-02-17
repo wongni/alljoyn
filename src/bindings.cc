@@ -3,6 +3,7 @@
 #include "BusConnection.h"
 #include "InterfaceWrapper.h"
 #include "AboutListenerWrapper.h"
+#include "AuthListenerWrapper.h"
 #include "ProxyBusObjectWrapper.h"
 #include "AboutProxyWrapper.h"
 #include "AboutDataWrapper.h"
@@ -20,6 +21,7 @@ void init(Handle<Object> target) {
   InterfaceWrapper::Init();
   BusListenerWrapper::Init();
   AboutListenerWrapper::Init();
+  AuthListenerWrapper::Init();
   AboutProxyWrapper::Init();
   ProxyBusObjectWrapper::Init();
   AboutDataWrapper::Init();
@@ -28,34 +30,18 @@ void init(Handle<Object> target) {
   SessionPortListenerWrapper::Init();
   NotificationWrapper::Init();
 
-  Local<Function> busWrap = FunctionTemplate::New(BusAttachmentWrapper)->GetFunction();
-  target->Set(NanNew<String>("BusAttachment"), busWrap);
-  Local<Function> interfaceWrap = FunctionTemplate::New(InterfaceDescriptionWrapper)->GetFunction();
-  target->Set(NanNew<String>("InterfaceDescription"), interfaceWrap);
-
-  Local<Function> aboutListenerConstructor = FunctionTemplate::New(AboutListenerConstructor)->GetFunction();
-  target->Set(NanNew<String>("AboutListener"), aboutListenerConstructor);
-
-  Local<Function> aboutProxyConstructor = FunctionTemplate::New(AboutProxyConstructor)->GetFunction();
-  target->Set(NanNew<String>("AboutProxy"), aboutProxyConstructor);
-
-  Local<Function> proxyBusObjectConstructor = FunctionTemplate::New(ProxyBusObjectConstructor)->GetFunction();
-  target->Set(NanNew<String>("ProxyBusObject"), proxyBusObjectConstructor);
-
-  Local<Function> aboutDataConstructor = FunctionTemplate::New(AboutDataConstructor)->GetFunction();
-  target->Set(NanNew<String>("AboutData"), aboutDataConstructor);
-
-  Local<Function> aboutObjConstructor = FunctionTemplate::New(AboutObjConstructor)->GetFunction();
-  target->Set(NanNew<String>("AboutObj"), aboutObjConstructor);
-
-  Local<Function> busListenerConstructor = FunctionTemplate::New(BusListenerConstructor)->GetFunction();
-  target->Set(NanNew<String>("BusListener"), busListenerConstructor);
-  Local<Function> objectConstructor = FunctionTemplate::New(BusObjectConstructor)->GetFunction();
-  target->Set(NanNew<String>("BusObject"), objectConstructor);
-  Local<Function> sessionPortListenerConstructor = FunctionTemplate::New(SessionPortListenerConstructor)->GetFunction();
-  target->Set(NanNew<String>("SessionPortListener"), sessionPortListenerConstructor);
-  Local<Function> notificationConstructor = FunctionTemplate::New(NotificationConstructor)->GetFunction();
-  target->Set(NanNew<String>("NotificationService"), notificationConstructor);
+  Nan::SetMethod(target, "BusAttachment", BusAttachmentWrapper);
+  Nan::SetMethod(target, "InterfaceDescription", InterfaceDescriptionWrapper);
+  Nan::SetMethod(target, "BusListener", BusListenerConstructor);
+  Nan::SetMethod(target, "BusObject", BusObjectConstructor);
+  Nan::SetMethod(target, "SessionPortListener", SessionPortListenerConstructor);
+  Nan::SetMethod(target, "NotificationService", NotificationConstructor);
+  Nan::SetMethod(target, "AboutListener", AboutListenerConstructor);
+  Nan::SetMethod(target, "AuthListener", AuthListenerConstructor);
+  Nan::SetMethod(target, "AboutProxy", AboutProxyConstructor);
+  Nan::SetMethod(target, "ProxyBusObject", ProxyBusObjectConstructor);
+  Nan::SetMethod(target, "AboutData", AboutDataConstructor);
+  Nan::SetMethod(target, "AboutObj", AboutObjConstructor);
 }
 
 NODE_MODULE(node_alljoyn, init)

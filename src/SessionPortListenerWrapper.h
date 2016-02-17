@@ -13,7 +13,7 @@ class SessionPortListenerWrapper : public node::ObjectWrap {
 
     static NAN_METHOD(New);
   public:
-  	SessionPortListenerWrapper(NanCallback* accept, NanCallback* joined);
+  	SessionPortListenerWrapper(Nan::Callback* accept, Nan::Callback* joined);
   	~SessionPortListenerWrapper();
     static void Init ();
     static v8::Handle<v8::Value> NewInstance();

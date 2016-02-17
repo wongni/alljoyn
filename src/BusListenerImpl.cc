@@ -4,7 +4,7 @@
 #include <alljoyn/InterfaceDescription.h>
 #include <alljoyn/AllJoynStd.h>
 
-BusListenerImpl::BusListenerImpl(NanCallback* foundNameCallback, NanCallback* lostNameCallback, NanCallback* nameChangedCallback){
+BusListenerImpl::BusListenerImpl(Nan::Callback* foundNameCallback, Nan::Callback* lostNameCallback, Nan::Callback* nameChangedCallback){
   loop = uv_default_loop();
   foundName.callback = foundNameCallback;
   lostName.callback = lostNameCallback;
@@ -12,7 +12,7 @@ BusListenerImpl::BusListenerImpl(NanCallback* foundNameCallback, NanCallback* lo
   uv_async_init(loop, &found_async, found_callback);
   uv_async_init(loop, &lost_async, lost_callback);
   uv_async_init(loop, &name_change_async, name_change_callback);
-  
+
   foundName.data = 0;
   lostName.data = 0;
   nameChanged.data = 0;
@@ -34,8 +34,8 @@ void BusListenerImpl::found_callback(uv_async_t *handle, int status) {
     CallbackHolder* holder = (CallbackHolder*) handle->data;
 
     uv_rwlock_rdlock(&holder->datalock);
-    v8::Handle<v8::Value> argv[] = {
-      NanNew<v8::String>(holder->data)
+    v8::Local<v8::Value> argv[] = {
+      Nan::New<v8::String>(holder->data).ToLocalChecked()
     };
     uv_rwlock_rdunlock(&holder->datalock);
     holder->callback->Call(1, argv);
@@ -45,8 +45,8 @@ void BusListenerImpl::lost_callback(uv_async_t *handle, int status) {
     CallbackHolder* holder = (CallbackHolder*) handle->data;
 
     uv_rwlock_rdlock(&holder->datalock);
-    v8::Handle<v8::Value> argv[] = {
-      NanNew<v8::String>(holder->data)
+    v8::Local<v8::Value> argv[] = {
+      Nan::New<v8::String>(holder->data).ToLocalChecked()
     };
     uv_rwlock_rdunlock(&holder->datalock);
     holder->callback->Call(1, argv);
@@ -56,8 +56,8 @@ void BusListenerImpl::name_change_callback(uv_async_t *handle, int status) {
     CallbackHolder* holder = (CallbackHolder*) handle->data;
 
     uv_rwlock_rdlock(&holder->datalock);
-    v8::Handle<v8::Value> argv[] = {
-      NanNew<v8::String>(holder->data)
+    v8::Local<v8::Value> argv[] = {
+      Nan::New<v8::String>(holder->data).ToLocalChecked()
     };
     uv_rwlock_rdunlock(&holder->datalock);
     holder->callback->Call(1, argv);
@@ -76,7 +76,7 @@ void BusListenerImpl::FoundAdvertisedName(const char* name, ajn::TransportMask t
 
 void BusListenerImpl::LostAdvertisedName(const char* name, ajn::TransportMask transport, const char* namePrefix){
     lost_async.data = (void*) &lostName;
-    
+
     uv_rwlock_wrlock(&lostName.datalock);
     free(lostName.data);
     lostName.data = strdup(name);
@@ -95,4 +95,3 @@ void BusListenerImpl::NameOwnerChanged(const char* busName, const char* previous
 
     uv_async_send(&name_change_async);
 }
-

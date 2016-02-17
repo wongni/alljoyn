@@ -16,7 +16,7 @@ class AuthListenerWrapper : public node::ObjectWrap {
 
     static NAN_METHOD(New);
   public:
-  	AuthListenerWrapper(NanCallback* requestCredentials, NanCallback* authenticationComplete);
+  	AuthListenerWrapper(Nan::Callback* requestCredentials, Nan::Callback* authenticationComplete);
   	~AuthListenerWrapper();
     static void Init ();
     static v8::Handle<v8::Value> NewInstance();

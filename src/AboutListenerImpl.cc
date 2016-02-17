@@ -7,11 +7,10 @@
 #include <alljoyn/InterfaceDescription.h>
 #include <alljoyn/AllJoynStd.h>
 
-AboutListenerImpl::AboutListenerImpl(NanCallback* announcedCallback){
+AboutListenerImpl::AboutListenerImpl(Nan::Callback* announcedCallback){
   loop = uv_default_loop();
   announced.callback = announcedCallback;
   uv_async_init(loop, &announced_async, announced_callback);
-  uv_rwlock_init(&calllock);
 }
 
 AboutListenerImpl::~AboutListenerImpl(){
@@ -20,17 +19,16 @@ AboutListenerImpl::~AboutListenerImpl(){
 void AboutListenerImpl::announced_callback(uv_async_t *handle, int status) {
   CallbackHolder* holder = (CallbackHolder*) handle->data;
 
-
-  // TODO: pull this into a library that can 
+  // TODO: pull this into a library that can
   // be shared with AboutProxyWrapper
 
   ajn::MsgArg objectDescriptionArg = *holder->objectDescriptionArg;
 
-  // this objectDescription will head back to Node.js after we 
+  // this objectDescription will head back to Node.js after we
   // populate it using the AllJoyn helper methods
-  v8::Local<v8::Object> objectDescription = v8::Object::New();
+  v8::Local<v8::Object> objectDescription = Nan::New<v8::Object>();
 
-  // use the AllJoyn helper methods to get the data out of 
+  // use the AllJoyn helper methods to get the data out of
   // the AllJoyn ObjectDescription and into the Node.js object
   ajn::AboutObjectDescription ajnObjectDescription;
   ajnObjectDescription.CreateFromMsgArg(objectDescriptionArg);
@@ -44,17 +42,17 @@ void AboutListenerImpl::announced_callback(uv_async_t *handle, int status) {
     aod.GetInterfaces(paths[i], intfs, intf_num);
     v8::Local<v8::Array> interfaceNames = v8::Array::New(intf_num);
     for (size_t j = 0; j < intf_num; ++j) {
-      interfaceNames->Set(j, NanNew<v8::String>(intfs[j]));
+      Nan::Set(interfaceNames, j, Nan::New<v8::String>(intfs[j]).ToLocalChecked());
     }
-    objectDescription->Set(NanNew<v8::String>(paths[i]), interfaceNames);
+    Nan::Set(objectDescription, Nan::New<v8::String>(paths[i]).ToLocalChecked(), interfaceNames);
     delete [] intfs;
   }
 
-  // this aboutData object will head back to Node.js after we 
+  // this aboutData object will head back to Node.js after we
   // populate it using the AllJoyn helper methods
   // const ajn::MsgArg* aboutDataArgIn = holder->aboutDataArg;
   // msgArgToObject(aboutDataArgIn, 0, aboutDataArgOut);
-  v8::Local<v8::Object> aboutData = v8::Object::New();
+  v8::Local<v8::Object> aboutData = Nan::New<v8::Object>();
   ajn::MsgArg aboutDataArg = *holder->aboutDataArg;
   ajn::AboutData ajnAboutData(aboutDataArg);
   size_t count = ajnAboutData.GetFields();
@@ -67,16 +65,16 @@ void AboutListenerImpl::announced_callback(uv_async_t *handle, int status) {
     if (tmp->Signature() == "s") {
       const char* tmp_s;
       tmp->Get("s", &tmp_s);
-      aboutData->Set(NanNew<v8::String>(fields[i]), NanNew<v8::String>(tmp_s));
+      Nan::Set(aboutData, Nan::New<v8::String>(fields[i]).ToLocalChecked(), Nan::New<v8::String>(tmp_s).ToLocalChecked());
     } else if (tmp->Signature() == "ay") {
       size_t lay;
       uint8_t* pay;
       tmp->Get("ay", &lay, &pay);
       v8::Local<v8::Array> v8_pay = v8::Array::New(lay);
       for (size_t j = 0; j < lay; ++j) {
-        v8_pay->Set(j, NanNew<v8::Integer>(pay[j]));
+        Nan::Set(v8_pay, j, Nan::New<v8::Integer>(pay[j]));
       }
-      aboutData->Set(NanNew<v8::String>(fields[i]), v8_pay);
+      Nan::Set(aboutData, Nan::New<v8::String>(fields[i]).ToLocalChecked(), v8_pay);
     } else if (tmp->Signature() == "as") {
       // TODO: need to write a test to hit this block
       // it is only called after a session is created
@@ -87,18 +85,18 @@ void AboutListenerImpl::announced_callback(uv_async_t *handle, int status) {
       for (size_t j = 0; j < las; ++j) {
         const char* tmp_s;
         as_arg[j].Get("s", &tmp_s);
-        v8_las->Set(j, NanNew<v8::String>(tmp_s));
+        Nan::Set(v8_las, j, Nan::New<v8::String>(tmp_s).ToLocalChecked());
       }
-      aboutData->Set(NanNew<v8::String>(fields[i]), v8_las);
+      Nan::Set(aboutData, Nan::New<v8::String>(fields[i]).ToLocalChecked(), v8_las);
     }
   }
   delete [] fields;
-    
+
   // Pass the v8 objects back to Node
-  v8::Handle<v8::Value> argv[] = {
-    NanNew<v8::String>(holder->busName),
-    NanNew<v8::Integer>(holder->version),
-    NanNew<v8::Integer>(holder->port),
+  v8::Local<v8::Value> argv[] = {
+    Nan::New<v8::String>(holder->busName).ToLocalChecked(),
+    Nan::New<v8::Integer>(holder->version),
+    Nan::New<v8::Integer>(holder->port),
     objectDescription,
     aboutData
   };

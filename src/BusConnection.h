@@ -21,6 +21,7 @@ class BusConnection : public node::ObjectWrap {
     static NAN_METHOD(CreateInterface);
     static NAN_METHOD(GetInterface);
     static NAN_METHOD(RegisterAboutListener);
+    static NAN_METHOD(EnablePeerSecurity);
     static NAN_METHOD(RegisterBusListener);
     static NAN_METHOD(UnregisterBusListener);
     static NAN_METHOD(RegisterBusObject);
@@ -42,7 +43,7 @@ class BusConnection : public node::ObjectWrap {
   	BusConnection(const char* shortName, bool allowRemoteMessages, int maxConcurrent);
     ~BusConnection();
     static void Init ();
-    static v8::Handle<v8::Value> NewInstance(v8::Local<v8::String> &appName);
+    static v8::Local<v8::Value> NewInstance(v8::Local<v8::String> &appName);
 };
 
 #endif

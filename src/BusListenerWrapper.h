@@ -16,7 +16,7 @@ class BusListenerWrapper : public node::ObjectWrap {
 
     static NAN_METHOD(New);
   public:
-  	BusListenerWrapper(NanCallback* foundName, NanCallback* lostName, NanCallback* nameChanged);
+  	BusListenerWrapper(Nan::Callback* foundName, Nan::Callback* lostName, Nan::Callback* nameChanged);
   	~BusListenerWrapper();
     static void Init ();
     static v8::Handle<v8::Value> NewInstance();

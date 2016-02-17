@@ -83,14 +83,7 @@ class MyAuthListner : public AuthListener {
         if (strcmp(authMechanism, "ALLJOYN_SRP_KEYX") == 0) {
             if (credMask & AuthListener::CRED_PASSWORD) {
                 if (authCount <= 3) {
-                    /* seed the random number */
-                    srand(time(NULL));
-                    int pin = rand() % 1000000;
-                    char pinStr[7];
-                    snprintf(pinStr, 7, "%06d", pin);
-                    printf("One Time Password : %s\n", pinStr);
-                    fflush(stdout);
-                    creds.SetPassword(pinStr);
+                    creds.SetPassword("123456");
                     return true;
                 } else {
                     return false;
@@ -580,7 +573,7 @@ QStatus EnableSecurity(void)
      * isShared parameter is being set to true. So this keystore file can
      * be used by multiple applications
      */
-    QStatus status = g_bus->EnablePeerSecurity("ALLJOYN_SRP_KEYX", new MyAuthListner(), "/.alljoyn_keystore/s_central.ks", true);
+    QStatus status = g_bus->EnablePeerSecurity("ALLJOYN_SRP_KEYX", new MyAuthListner(), "./test_service_pin.ks", true);
 
     if (ER_OK == status) {
         printf("BusAttachment::EnablePeerSecurity successful.\n");
