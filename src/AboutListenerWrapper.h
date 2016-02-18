@@ -11,10 +11,10 @@
 
 NAN_METHOD(AboutListenerConstructor);
 
-class AboutListenerWrapper : public node::ObjectWrap {
+class AboutListenerWrapper : public Nan::ObjectWrap {
   private:
-
     static NAN_METHOD(New);
+
   public:
   	AboutListenerWrapper(Nan::Callback* announced);
   	~AboutListenerWrapper();

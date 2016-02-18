@@ -26,7 +26,7 @@ class NotificationBusListener : public ajn::BusListener, public ajn::SessionPort
     ajn::SessionPort sessionPort;
 };
 
-class NotificationWrapper : public node::ObjectWrap {
+class NotificationWrapper : public Nan::ObjectWrap {
   private:
 
     static NAN_METHOD(New);

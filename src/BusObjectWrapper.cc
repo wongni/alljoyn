@@ -53,8 +53,8 @@ NAN_METHOD(BusObjectWrapper::AddInterfaceInternal) {
   if(info.Length() < 1){
     return Nan::ThrowError("BusObject.AddInterface requires an Interface.");
   }
-  BusObjectWrapper* obj = node::ObjectWrap::Unwrap<BusObjectWrapper>(info.This());
-  InterfaceWrapper* interWrapper = node::ObjectWrap::Unwrap<InterfaceWrapper>(info[0].As<v8::Object>());
+  BusObjectWrapper* obj = Nan::ObjectWrap::Unwrap<BusObjectWrapper>(info.This());
+  InterfaceWrapper* interWrapper = Nan::ObjectWrap::Unwrap<InterfaceWrapper>(info[0].As<v8::Object>());
   QStatus status = obj->object->AddInter(interWrapper->interface);
   info.GetReturnValue().Set(Nan::New<v8::Integer>(static_cast<int>(status)));
 }
@@ -64,8 +64,8 @@ NAN_METHOD(BusObjectWrapper::Signal) {
   if(info.Length() < 3){
     return Nan::ThrowError("BusObject.Signal requires a (nullable) destination, SessionId, Interface, member name, and message info.");
   }
-  BusObjectWrapper* obj = node::ObjectWrap::Unwrap<BusObjectWrapper>(info.This());
-  InterfaceWrapper* interface = node::ObjectWrap::Unwrap<InterfaceWrapper>(info[2].As<v8::Object>());
+  BusObjectWrapper* obj = Nan::ObjectWrap::Unwrap<BusObjectWrapper>(info.This());
+  InterfaceWrapper* interface = Nan::ObjectWrap::Unwrap<InterfaceWrapper>(info[2].As<v8::Object>());
   const ajn::InterfaceDescription::Member* signalMember = interface->interface->GetMember(*Nan::Utf8String(info[3]));
   const char* destination = NULL;
   if(!info[0]->IsNull() && info[0]->IsString()){

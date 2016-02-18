@@ -8,7 +8,7 @@
 
 NAN_METHOD(SessionPortListenerConstructor);
 
-class SessionPortListenerWrapper : public node::ObjectWrap {
+class SessionPortListenerWrapper : public Nan::ObjectWrap {
   private:
 
     static NAN_METHOD(New);

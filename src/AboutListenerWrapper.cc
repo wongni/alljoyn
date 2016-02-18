@@ -8,8 +8,6 @@
 static Nan::Persistent<v8::FunctionTemplate> aboutlistener_constructor;
 
 NAN_METHOD(AboutListenerConstructor) {
-
-
   if(info.Length() < 1){
     return Nan::ThrowError("NAN_METHOD(AboutListenerConstructor) AboutListener requires a callback for Announced(busName, version, port, objectDescriptionArg, aboutDataArg).");
   }
@@ -39,7 +37,6 @@ void AboutListenerWrapper::Init () {
 }
 
 NAN_METHOD(AboutListenerWrapper::New) {
-
   if(info.Length() < 1){
     return Nan::ThrowError("NAN_METHOD(AboutListenerWrapper::New) AboutListener requires a callback for Announced(busName, version, port, objectDescriptionArg, aboutDataArg).");
   }

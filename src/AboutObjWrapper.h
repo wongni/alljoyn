@@ -10,9 +10,8 @@
 
 NAN_METHOD(AboutObjConstructor);
 
-class AboutObjWrapper : public node::ObjectWrap {
+class AboutObjWrapper : public Nan::ObjectWrap {
   private:
-
     static NAN_METHOD(New);
     static NAN_METHOD(Announce);
 

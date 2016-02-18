@@ -10,9 +10,8 @@
 
 NAN_METHOD(AboutDataConstructor);
 
-class AboutDataWrapper : public node::ObjectWrap {
+class AboutDataWrapper : public Nan::ObjectWrap {
   private:
-
     static NAN_METHOD(New);
     static NAN_METHOD(IsValid);
     static NAN_METHOD(SetAppId);

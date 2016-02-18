@@ -73,7 +73,7 @@ NAN_METHOD(NotificationWrapper::New) {
     return Nan::ThrowError("Notification requires an application name.");
   }
   char* name = strdup(*Nan::Utf8String(info[0]));
-  BusConnection* busWrapper = node::ObjectWrap::Unwrap<BusConnection>(info[1].As<v8::Object>());
+  BusConnection* busWrapper = Nan::ObjectWrap::Unwrap<BusConnection>(info[1].As<v8::Object>());
   NotificationWrapper* obj = new NotificationWrapper(name, busWrapper->bus, info[2]->Int32Value());
   obj->Wrap(info.This());
 
@@ -85,7 +85,7 @@ NAN_METHOD(NotificationWrapper::Notify) {
   if(info.Length() < 2){
     return Nan::ThrowError("Notification.Notify requires a message and TTL (in seconds).");
   }
-  NotificationWrapper* obj = node::ObjectWrap::Unwrap<NotificationWrapper>(info.This());
+  NotificationWrapper* obj = Nan::ObjectWrap::Unwrap<NotificationWrapper>(info.This());
   ajn::services::NotificationText textToSend("en", strdup(*Nan::Utf8String(info[0])));
   std::vector<ajn::services::NotificationText> msg;
   msg.push_back(textToSend);
@@ -96,7 +96,7 @@ NAN_METHOD(NotificationWrapper::Notify) {
 
 NAN_METHOD(NotificationWrapper::DeleteLastMsg) {
 
-  NotificationWrapper* obj = node::ObjectWrap::Unwrap<NotificationWrapper>(info.This());
+  NotificationWrapper* obj = Nan::ObjectWrap::Unwrap<NotificationWrapper>(info.This());
   QStatus status = obj->notificationSender->deleteLastMsg(ajn::services::INFO);
   info.GetReturnValue().Set(Nan::New<v8::Integer>(static_cast<int>(status)));
 }

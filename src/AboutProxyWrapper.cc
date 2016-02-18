@@ -8,8 +8,6 @@
 static Nan::Persistent<v8::FunctionTemplate> aboutproxy_constructor;
 
 NAN_METHOD(AboutProxyConstructor) {
-
-
   if(info.Length() < 2){
     return Nan::ThrowError("NAN_METHOD(AboutProxyConstructor) AboutProxy requires busAttachment and busName. sessionId is optional.");
   }
@@ -47,12 +45,11 @@ void AboutProxyWrapper::Init () {
 }
 
 NAN_METHOD(AboutProxyWrapper::New) {
-
   if(info.Length() < 2){
     return Nan::ThrowError("NAN_METHOD(AboutProxyWrapper::New) AboutProxy requires a BusAttachment and a busName. Session ID is optional.");
   }
 
-  BusConnection* busWrapper = node::ObjectWrap::Unwrap<BusConnection>(info[0].As<v8::Object>());
+  BusConnection* busWrapper = Nan::ObjectWrap::Unwrap<BusConnection>(info[0].As<v8::Object>());
 
   char* busName = strdup(*Nan::Utf8String(info[1]));
 
@@ -63,22 +60,19 @@ NAN_METHOD(AboutProxyWrapper::New) {
 }
 
 NAN_METHOD(AboutProxyWrapper::GetSessionId) {
-
-  AboutProxyWrapper* wrapper = node::ObjectWrap::Unwrap<AboutProxyWrapper>(info.This());
+  AboutProxyWrapper* wrapper = Nan::ObjectWrap::Unwrap<AboutProxyWrapper>(info.This());
   ajn::SessionId sessionId = wrapper->proxy->GetSessionId();
   info.GetReturnValue().Set(Nan::New<v8::Integer>(static_cast<int>(sessionId)));
 }
 
 NAN_METHOD(AboutProxyWrapper::GetUniqueName) {
-
-  AboutProxyWrapper* wrapper = node::ObjectWrap::Unwrap<AboutProxyWrapper>(info.This());
+  AboutProxyWrapper* wrapper = Nan::ObjectWrap::Unwrap<AboutProxyWrapper>(info.This());
   qcc::String uniqueName = wrapper->proxy->GetUniqueName();
   info.GetReturnValue().Set(Nan::New<v8::String>(uniqueName.c_str()).ToLocalChecked());
 }
 
 NAN_METHOD(AboutProxyWrapper::GetVersion) {
-
-  AboutProxyWrapper* wrapper = node::ObjectWrap::Unwrap<AboutProxyWrapper>(info.This());
+  AboutProxyWrapper* wrapper = Nan::ObjectWrap::Unwrap<AboutProxyWrapper>(info.This());
 
   uint16_t ver;
   QStatus status = wrapper->proxy->GetVersion(ver);
@@ -89,9 +83,7 @@ NAN_METHOD(AboutProxyWrapper::GetVersion) {
 }
 
 NAN_METHOD(AboutProxyWrapper::GetObjectDescription) {
-
-
-  AboutProxyWrapper* wrapper = node::ObjectWrap::Unwrap<AboutProxyWrapper>(info.This());
+  AboutProxyWrapper* wrapper = Nan::ObjectWrap::Unwrap<AboutProxyWrapper>(info.This());
   ajn::MsgArg objectDescriptionArg;
   QStatus status = wrapper->proxy->GetObjectDescription(objectDescriptionArg);
 
@@ -127,15 +119,13 @@ NAN_METHOD(AboutProxyWrapper::GetObjectDescription) {
 
 
 NAN_METHOD(AboutProxyWrapper::GetAboutData) {
-
-
   if(info.Length() < 1){
     return Nan::ThrowError("NAN_METHOD(AboutProxyWrapper::GetAboutData) GetAboutData requires a language tag.");
   }
 
   char* languageTag = strdup(*Nan::Utf8String(info[0]));
 
-  AboutProxyWrapper* wrapper = node::ObjectWrap::Unwrap<AboutProxyWrapper>(info.This());
+  AboutProxyWrapper* wrapper = Nan::ObjectWrap::Unwrap<AboutProxyWrapper>(info.This());
   ajn::MsgArg aboutDataArg;
   QStatus status = wrapper->proxy->GetAboutData(languageTag, aboutDataArg);
 

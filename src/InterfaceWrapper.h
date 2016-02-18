@@ -8,7 +8,7 @@
 
 NAN_METHOD(InterfaceDescriptionWrapper);
 
-class InterfaceWrapper : public node::ObjectWrap {
+class InterfaceWrapper : public Nan::ObjectWrap {
   private:
 
     static NAN_METHOD(New);

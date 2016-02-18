@@ -11,10 +11,10 @@
 
 NAN_METHOD(AuthListenerConstructor);
 
-class AuthListenerWrapper : public node::ObjectWrap {
+class AuthListenerWrapper : public Nan::ObjectWrap {
   private:
-
     static NAN_METHOD(New);
+
   public:
   	AuthListenerWrapper(Nan::Callback* requestCredentials, Nan::Callback* authenticationComplete);
   	~AuthListenerWrapper();

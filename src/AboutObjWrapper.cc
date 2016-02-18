@@ -9,8 +9,6 @@
 static Nan::Persistent<v8::FunctionTemplate> aboutobj_constructor;
 
 NAN_METHOD(AboutObjConstructor) {
-
-
   if(info.Length() < 1){
     return Nan::ThrowError("NAN_METHOD(AboutObjConstructor) AboutObj requires a bus attachment");
   }
@@ -42,12 +40,11 @@ void AboutObjWrapper::Init () {
 }
 
 NAN_METHOD(AboutObjWrapper::New) {
-
   if(info.Length() < 1){
     return Nan::ThrowError("NAN_METHOD(AboutObjWrapper::New) AboutObj requires a bus attachment.");
   }
 
-  BusConnection* connection = node::ObjectWrap::Unwrap<BusConnection>(info[0].As<v8::Object>());
+  BusConnection* connection = Nan::ObjectWrap::Unwrap<BusConnection>(info[0].As<v8::Object>());
 
   AboutObjWrapper* obj = new AboutObjWrapper(connection->bus);
   obj->Wrap(info.This());
@@ -57,15 +54,14 @@ NAN_METHOD(AboutObjWrapper::New) {
 
 
 NAN_METHOD(AboutObjWrapper::Announce) {
-
   if(info.Length() < 2){
     return Nan::ThrowError("NAN_METHOD(AboutObjWrapper::Announce) AboutObjWrapper::Announce requires a session port and about data.");
   }
 
   ajn::SessionPort port = static_cast<ajn::SessionPort>(info[0]->Int32Value());
-  AboutDataWrapper* wrapper = node::ObjectWrap::Unwrap<AboutDataWrapper>(info[1].As<v8::Object>());
+  AboutDataWrapper* wrapper = Nan::ObjectWrap::Unwrap<AboutDataWrapper>(info[1].As<v8::Object>());
 
-  AboutObjWrapper* objWrapper = node::ObjectWrap::Unwrap<AboutObjWrapper>(info.This());
+  AboutObjWrapper* objWrapper = Nan::ObjectWrap::Unwrap<AboutObjWrapper>(info.This());
   QStatus status = objWrapper->aboutobj->Announce(port, *(wrapper->aboutdata));
 
   info.GetReturnValue().Set(Nan::New<v8::Integer>(static_cast<int>(status)));

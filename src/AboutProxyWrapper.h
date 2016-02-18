@@ -10,15 +10,15 @@
 
 NAN_METHOD(AboutProxyConstructor);
 
-class AboutProxyWrapper : public node::ObjectWrap {
+class AboutProxyWrapper : public Nan::ObjectWrap {
   private:
-
     static NAN_METHOD(New);
     static NAN_METHOD(GetObjectDescription);
     static NAN_METHOD(GetAboutData);
     static NAN_METHOD(GetSessionId);
     static NAN_METHOD(GetUniqueName);
     static NAN_METHOD(GetVersion);
+
   public:
     AboutProxyWrapper(ajn::BusAttachment* busAttachment, const char* busName, ajn::SessionId sessionId);
     ~AboutProxyWrapper();

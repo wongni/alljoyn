@@ -29,7 +29,6 @@ public:
   static void announced_callback(uv_async_t *handle, int status);
 
   virtual void Announced(const char* busName, uint16_t version, ajn::SessionPort port, const ajn::MsgArg& objectDescriptionArg, const ajn::MsgArg& aboutDataArg);
-
 };
 
 #endif

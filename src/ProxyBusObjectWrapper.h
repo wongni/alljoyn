@@ -10,15 +10,15 @@
 
 NAN_METHOD(ProxyBusObjectConstructor);
 
-class ProxyBusObjectWrapper : public node::ObjectWrap {
+class ProxyBusObjectWrapper : public Nan::ObjectWrap {
   private:
-
     static NAN_METHOD(New);
     static NAN_METHOD(GetInterfaceNames);
     static NAN_METHOD(GetInterface);
     static NAN_METHOD(MethodCall);
     static NAN_METHOD(SecureConnectionAsync);
     static NAN_METHOD(IsSecure);
+
   public:
     ProxyBusObjectWrapper(ajn::BusAttachment* bus, const char *busName, const char *path, ajn::SessionId sessionId);
     ~ProxyBusObjectWrapper();

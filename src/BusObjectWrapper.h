@@ -14,7 +14,7 @@ public:
     QStatus AddInter(ajn::InterfaceDescription* interface);
 };
 
-class BusObjectWrapper : public node::ObjectWrap {
+class BusObjectWrapper : public Nan::ObjectWrap {
   private:
 
     static NAN_METHOD(New);

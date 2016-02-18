@@ -11,8 +11,6 @@
 static Nan::Persistent<v8::FunctionTemplate> proxybusobject_constructor;
 
 NAN_METHOD(ProxyBusObjectConstructor) {
-
-
   if(info.Length() < 4){
     return Nan::ThrowError("NAN_METHOD(ProxyBusObjectConstructor) ProxyBusObject requires busAttachment, busName, path and sessionId.");
   }
@@ -51,12 +49,11 @@ void ProxyBusObjectWrapper::Init () {
 }
 
 NAN_METHOD(ProxyBusObjectWrapper::New) {
-
   if(info.Length() < 4){
     return Nan::ThrowError("NAN_METHOD(ProxyBusObjectWrapper::New) ProxyBusObject requires a BusAttachment, a busName, a path and a Session ID.");
   }
 
-  BusConnection* busWrapper = node::ObjectWrap::Unwrap<BusConnection>(info[0].As<v8::Object>());
+  BusConnection* busWrapper = Nan::ObjectWrap::Unwrap<BusConnection>(info[0].As<v8::Object>());
   char* busName = strdup(*Nan::Utf8String(info[1]));
   char* path = strdup(*Nan::Utf8String(info[2]));
 
@@ -67,8 +64,7 @@ NAN_METHOD(ProxyBusObjectWrapper::New) {
 }
 
 NAN_METHOD(ProxyBusObjectWrapper::GetInterfaceNames) {
-
-  ProxyBusObjectWrapper* wrapper = node::ObjectWrap::Unwrap<ProxyBusObjectWrapper>(info.This());
+  ProxyBusObjectWrapper* wrapper = Nan::ObjectWrap::Unwrap<ProxyBusObjectWrapper>(info.This());
   // QStatus status = wrapper->proxyBusObject->IntrospectRemoteObject();
   wrapper->proxyBusObject->IntrospectRemoteObject();
 
@@ -83,7 +79,6 @@ NAN_METHOD(ProxyBusObjectWrapper::GetInterfaceNames) {
 }
 
 NAN_METHOD(ProxyBusObjectWrapper::GetInterface) {
-
   if (info.Length() == 0 || !info[0]->IsString())
     return Nan::ThrowError("GetInterface requires a name string argument");
   if (info.Length() == 1)
@@ -93,21 +88,20 @@ NAN_METHOD(ProxyBusObjectWrapper::GetInterface) {
 
   ajn::InterfaceDescription* interface = NULL;
 
-  ProxyBusObjectWrapper* proxyBusObjectWrapper = node::ObjectWrap::Unwrap<ProxyBusObjectWrapper>(info.This());
+  ProxyBusObjectWrapper* proxyBusObjectWrapper = Nan::ObjectWrap::Unwrap<ProxyBusObjectWrapper>(info.This());
   interface = const_cast<ajn::InterfaceDescription*>(proxyBusObjectWrapper->proxyBusObject->GetInterface(name));
-  InterfaceWrapper* interfaceWrapper = node::ObjectWrap::Unwrap<InterfaceWrapper>(info[1].As<v8::Object>());
+  InterfaceWrapper* interfaceWrapper = Nan::ObjectWrap::Unwrap<InterfaceWrapper>(info[1].As<v8::Object>());
   interfaceWrapper->interface = interface;
 
   info.GetReturnValue().SetUndefined();
 }
 
 NAN_METHOD(ProxyBusObjectWrapper::MethodCall) {
-
   if(info.Length() < 5  || !info[3]->IsArray() || !info[4]->IsArray()){
     return Nan::ThrowError("NAN_METHOD(ProxyBusObjectWrapper::MethodCall) MethodCall requires a bus attachment, an interface name, a method name and an array of input arguments.");
   }
 
-  BusConnection* busWrapper = node::ObjectWrap::Unwrap<BusConnection>(info[0].As<v8::Object>());
+  BusConnection* busWrapper = Nan::ObjectWrap::Unwrap<BusConnection>(info[0].As<v8::Object>());
   char* interfaceName = strdup(*Nan::Utf8String(info[1]));
   char* methodName = strdup(*Nan::Utf8String(info[2]));
   v8::Local<v8::Array> v8InArguments = v8::Local<v8::Array>::Cast(info[3]);
@@ -138,7 +132,7 @@ NAN_METHOD(ProxyBusObjectWrapper::MethodCall) {
 
   ajn::Message replyMsg(*busWrapper->bus);
 
-  ProxyBusObjectWrapper* proxyBusObjectWrapper = node::ObjectWrap::Unwrap<ProxyBusObjectWrapper>(info.This());
+  ProxyBusObjectWrapper* proxyBusObjectWrapper = Nan::ObjectWrap::Unwrap<ProxyBusObjectWrapper>(info.This());
   QStatus status = proxyBusObjectWrapper->proxyBusObject->MethodCall(interfaceName, methodName, msgArgs, v8InArguments->Length(), replyMsg);
 
   size_t numArgs;
@@ -176,13 +170,13 @@ NAN_METHOD(ProxyBusObjectWrapper::MethodCall) {
 }
 
 NAN_METHOD(ProxyBusObjectWrapper::SecureConnectionAsync) {
-  ProxyBusObjectWrapper* wrapper = node::ObjectWrap::Unwrap<ProxyBusObjectWrapper>(info.This());
+  ProxyBusObjectWrapper* wrapper = Nan::ObjectWrap::Unwrap<ProxyBusObjectWrapper>(info.This());
   QStatus status = wrapper->proxyBusObject->SecureConnectionAsync(info[0]->BooleanValue());
   info.GetReturnValue().Set(Nan::New<v8::Integer>(static_cast<int>(status)));
 }
 
 NAN_METHOD(ProxyBusObjectWrapper::IsSecure) {
-  ProxyBusObjectWrapper* wrapper = node::ObjectWrap::Unwrap<ProxyBusObjectWrapper>(info.This());
+  ProxyBusObjectWrapper* wrapper = Nan::ObjectWrap::Unwrap<ProxyBusObjectWrapper>(info.This());
   bool isSecure = wrapper->proxyBusObject->IsSecure();
   info.GetReturnValue().Set(Nan::New<v8::Boolean>(isSecure));
 }

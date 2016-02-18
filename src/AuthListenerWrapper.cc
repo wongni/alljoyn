@@ -8,8 +8,6 @@
 static Nan::Persistent<v8::FunctionTemplate> authlistener_constructor;
 
 NAN_METHOD(AuthListenerConstructor) {
-
-
   if(info.Length() < 1){
     return Nan::ThrowError("NAN_METHOD(AuthListenerConstructor) AuthListener requires a callback for Announced(busName, version, port, objectDescriptionArg, authDataArg).");
   }
@@ -39,7 +37,6 @@ void AuthListenerWrapper::Init () {
 }
 
 NAN_METHOD(AuthListenerWrapper::New) {
-
   if(info.Length() < 2){
     return Nan::ThrowError("NAN_METHOD(AuthListenerWrapper::New) AuthListener requires callbacks for RequestCredentials and AuthenticationComplete.");
   }

@@ -11,7 +11,7 @@
 
 NAN_METHOD(BusListenerConstructor);
 
-class BusListenerWrapper : public node::ObjectWrap {
+class BusListenerWrapper : public Nan::ObjectWrap {
   private:
 
     static NAN_METHOD(New);

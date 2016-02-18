@@ -9,7 +9,7 @@
 
 NAN_METHOD(BusAttachmentWrapper);
 
-class BusConnection : public node::ObjectWrap {
+class BusConnection : public Nan::ObjectWrap {
   private:
 
     static NAN_METHOD(New);

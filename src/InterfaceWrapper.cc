@@ -50,21 +50,21 @@ NAN_METHOD(InterfaceWrapper::AddSignal) {
     annotation = info[3]->Int32Value();
   }
 
-  InterfaceWrapper* wrapper = node::ObjectWrap::Unwrap<InterfaceWrapper>(info.This());
+  InterfaceWrapper* wrapper = Nan::ObjectWrap::Unwrap<InterfaceWrapper>(info.This());
   QStatus status = wrapper->interface->AddSignal(strdup(*Nan::Utf8String(info[0])), strdup(*Nan::Utf8String(info[1])), strdup(*Nan::Utf8String(info[2])), annotation);
   info.GetReturnValue().Set(Nan::New<v8::Integer>(static_cast<int>(status)));
 }
 
 NAN_METHOD(InterfaceWrapper::Activate) {
 
-  InterfaceWrapper* wrapper = node::ObjectWrap::Unwrap<InterfaceWrapper>(info.This());
+  InterfaceWrapper* wrapper = Nan::ObjectWrap::Unwrap<InterfaceWrapper>(info.This());
   wrapper->interface->Activate();
   info.GetReturnValue().SetUndefined();
 }
 
 NAN_METHOD(InterfaceWrapper::GetMembers) {
 
-  InterfaceWrapper* wrapper = node::ObjectWrap::Unwrap<InterfaceWrapper>(info.This());
+  InterfaceWrapper* wrapper = Nan::ObjectWrap::Unwrap<InterfaceWrapper>(info.This());
   size_t member_num = wrapper->interface->GetMembers();
   const ajn::InterfaceDescription::Member** members = new const ajn::InterfaceDescription::Member*[member_num];
   wrapper->interface->GetMembers(members, member_num);
@@ -89,6 +89,6 @@ NAN_METHOD(InterfaceWrapper::GetMembers) {
 NAN_METHOD(InterfaceWrapper::Introspect) {
 
 
-  InterfaceWrapper* wrapper = node::ObjectWrap::Unwrap<InterfaceWrapper>(info.This());
+  InterfaceWrapper* wrapper = Nan::ObjectWrap::Unwrap<InterfaceWrapper>(info.This());
   info.GetReturnValue().Set(Nan::New<v8::String>(wrapper->interface->Introspect().c_str()).ToLocalChecked());
 }
